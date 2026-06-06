@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bolão Copa - Login</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body class="bg-zinc-950 text-white flex items-center justify-center min-h-screen p-4">
+    <div class="w-full max-w-md bg-zinc-900 border border-zinc-800 p-8 rounded-2xl shadow-xl">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-yellow-400 to-amber-500 bg-clip-text text-transparent">BOLÃO COPA</h1>
+            <p class="text-sm text-zinc-400 mt-2">Faça o login para gerenciar seus palpites em tempo real</p>
+        </div>
+
+        <form id="login-form" class="space-y-5">
+            <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">E-mail</label>
+                <input type="email" id="email" required class="w-full h-11 bg-zinc-950 border border-zinc-800 rounded-xl px-4 text-sm text-white focus:outline-none focus:border-amber-500 transition-colors">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Senha</label>
+                <input type="password" id="password" required class="w-full h-11 bg-zinc-950 border border-zinc-800 rounded-xl px-4 text-sm text-white focus:outline-none focus:border-amber-500 transition-colors">
+            </div>
+
+            <div id="error-message" class="hidden text-xs font-medium text-red-400 bg-red-500/10 border border-red-500/20 p-3 rounded-lg text-center"></div>
+
+            <button type="submit" class="w-full h-11 bg-amber-500 hover:bg-amber-600 text-black font-bold rounded-xl transition-all shadow-md shadow-amber-500/10">
+                Entrar na Arena
+            </button>
+        </form>
+
+        <div class="text-center mt-6">
+            <p class="text-xs text-zinc-400">Não tem uma conta? <a href="cadastro.html" class="text-amber-400 hover:underline font-semibold">Cadastre-se aqui</a></p>
+        </div>
+    </div>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/auth.js"></script>
+</body>
+</html>

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bolão Copa - Meus Palpites</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+
+<body class="bg-zinc-950 text-white min-h-screen flex flex-col">
+
+    <nav class="bg-zinc-900 border-b border-zinc-800 h-16 px-6 flex items-center justify-between">
+        <div class="flex items-center gap-8">
+            <span class="font-black tracking-wider text-yellow-400 text-lg">BOLÃO COPA</span>
+            <div class="flex gap-4 text-sm font-medium">
+                <a href="dashboard.html" class="text-zinc-400 hover:text-white transition-colors">Dashboard</a>
+                <a href="palpites.html" class="text-white font-semibold">Meus Palpites</a>
+            </div>
+        </div>
+        <button onclick="window.supabaseClient.auth.signOut().then(() => window.location.href='index.html')"
+            class="text-xs text-red-400 hover:underline">Sair</button>
+    </nav>
+
+    <main class="flex-1 p-6 max-w-4xl w-full mx-auto space-y-8 pb-24">
+
+        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 space-y-4">
+            <div>
+                <h2 class="text-base font-bold text-zinc-100">🏆 Palpites de Longo Prazo</h2>
+                <p class="text-[11px] text-zinc-400 mt-0.5">Defina seus favoritos antes do início do primeiro jogo da
+                    fase de grupos. Vale 10 pontos cada acerto!</p>
+            </div>
+
+            <div id="longo-prazo-container" class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+                <div>
+                    <label class="block text-[11px] font-semibold uppercase text-zinc-400 mb-2">Campeão</label>
+                    <select id="lp-campeao"
+                        class="w-full h-10 bg-zinc-950 border border-zinc-800 rounded-lg px-2 text-sm text-zinc-300 focus:outline-none focus:border-amber-500">
+                        <option value="">Selecione o Campeão</option>
+                        <option value="África do Sul">África do Sul</option>
+                        <option value="Alemanha">Alemanha</option>
+                        <option value="Argélia">Argélia</option>
+                        <option value="Arábia Saudita">Arábia Saudita</option>
+                        <option value="Argentina">Argentina</option>
+                        <option value="Austrália">Austrália</option>
+                        <option value="Áustria">Áustria</option>
+                        <option value="Bélgica">Bélgica</option>
+                        <option value="Bósnia e Herzegovina">Bósnia e Herzegovina</option>
+                        <option value="Brasil">Brasil</option>
+                        <option value="Cabo Verde">Cabo Verde</option>
+                        <option value="Canadá">Canadá</option>
+                        <option value="Catar">Catar</option>
+                        <option value="Colômbia">Colômbia</option>
+                        <option value="Coreia do Sul">Coreia do Sul</option>
+                        <option value="Costa do Marfim">Costa do Marfim</option>
+                        <option value="Croácia">Croácia</option>
+                        <option value="Curaçao">Curaçao</option>
+                        <option value="Egito">Egito</option>
+                        <option value="Equador">Equador</option>
+                        <option value="Escócia">Escócia</option>
+                        <option value="Espanha">Espanha</option>
+                        <option value="Estados Unidos">Estados Unidos</option>
+                        <option value="França">França</option>
+                        <option value="Gana">Gana</option>
+                        <option value="Haiti">Haiti</option>
+                        <option value="Holanda">Holanda</option>
+                        <option value="Inglaterra">Inglaterra</option>
+                        <option value="Iraque">Iraque</option>
+                        <option value="Irã">Irã</option>
+                        <option value="Japão">Japão</option>
+                        <option value="Jordânia">Jordânia</option>
+                        <option value="Marrocos">Marrocos</option>
+                        <option value="México">México</option>
+                        <option value="Noruega">Noruega</option>
+                        <option value="Nova Zelândia">Nova Zelândia</option>
+                        <option value="Panamá">Panamá</option>
+                        <option value="Paraguai">Paraguai</option>
+                        <option value="Portugal">Portugal</option>
+                        <option value="RD Congo">RD Congo</option>
+                        <option value="República Tcheca">República Tcheca</option>
+                        <option value="Senegal">Senegal</option>
+                        <option value="Suécia">Suécia</option>
+                        <option value="Suíça">Suíça</option>
+                        <option value="Tunísia">Tunísia</option>
+                        <option value="Turquia">Turquia</option>
+                        <option value="Uruguai">Uruguai</option>
+                        <option value="Uzbequistão">Uzbequistão</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[11px] font-semibold uppercase text-zinc-400 mb-2">Vice-Campeão</label>
+                    <select id="lp-vice"
+                        class="w-full h-10 bg-zinc-950 border border-zinc-800 rounded-lg px-2 text-sm text-zinc-300 focus:outline-none focus:border-amber-500">
+                        <option value="">Selecione o Vice</option>
+                        <option value="África do Sul">África do Sul</option>
+                        <option value="Alemanha">Alemanha</option>
+                        <option value="Argélia">Argélia</option>
+                        <option value="Arábia Saudita">Arábia Saudita</option>
+                        <option value="Argentina">Argentina</option>
+                        <option value="Austrália">Austrália</option>
+                        <option value="Áustria">Áustria</option>
+                        <option value="Bélgica">Bélgica</option>
+                        <option value="Bósnia e Herzegovina">Bósnia e Herzegovina</option>
+                        <option value="Brasil">Brasil</option>
+                        <option value="Cabo Verde">Cabo Verde</option>
+                        <option value="Canadá">Canadá</option>
+                        <option value="Catar">Catar</option>
+                        <option value="Colômbia">Colômbia</option>
+                        <option value="Coreia do Sul">Coreia do Sul</option>
+                        <option value="Costa do Marfim">Costa do Marfim</option>
+                        <option value="Croácia">Croácia</option>
+                        <option value="Curaçao">Curaçao</option>
+                        <option value="Egito">Egito</option>
+                        <option value="Equador">Equador</option>
+                        <option value="Escócia">Escócia</option>
+                        <option value="Espanha">Espanha</option>
+                        <option value="Estados Unidos">Estados Unidos</option>
+                        <option value="França">França</option>
+                        <option value="Gana">Gana</option>
+                        <option value="Haiti">Haiti</option>
+                        <option value="Holanda">Holanda</option>
+                        <option value="Inglaterra">Inglaterra</option>
+                        <option value="Iraque">Iraque</option>
+                        <option value="Irã">Irã</option>
+                        <option value="Japão">Japão</option>
+                        <option value="Jordânia">Jordânia</option>
+                        <option value="Marrocos">Marrocos</option>
+                        <option value="México">México</option>
+                        <option value="Noruega">Noruega</option>
+                        <option value="Nova Zelândia">Nova Zelândia</option>
+                        <option value="Panamá">Panamá</option>
+                        <option value="Paraguai">Paraguai</option>
+                        <option value="Portugal">Portugal</option>
+                        <option value="RD Congo">RD Congo</option>
+                        <option value="República Tcheca">República Tcheca</option>
+                        <option value="Senegal">Senegal</option>
+                        <option value="Suécia">Suécia</option>
+                        <option value="Suíça">Suíça</option>
+                        <option value="Tunísia">Tunísia</option>
+                        <option value="Turquia">Turquia</option>
+                        <option value="Uruguai">Uruguai</option>
+                        <option value="Uzbequistão">Uzbequistão</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[11px] font-semibold uppercase text-zinc-400 mb-2">Artilheiro da
+                        Copa</label>
+                    <select id="lp-artilheiro"
+                        class="w-full h-10 bg-zinc-950 border border-zinc-800 rounded-lg px-2 text-sm text-zinc-300 focus:outline-none focus:border-amber-500">
+                        <option value="">Carregando jogadores...</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-base font-bold text-zinc-100">Gerenciar Palpites dos Jogos</h2>
+                    <p class="text-xs text-zinc-400 mt-1">Os palpites trancam automaticamente 10 minutes antes de cada
+                        partida.</p>
+                </div>
+                <button onclick="salvarTodosOsPalpites()"
+                    class="bg-amber-500 hover:bg-amber-600 text-black font-bold text-sm px-6 py-3 rounded-xl transition-all shadow-lg shadow-amber-500/10">
+                    💾 Salvar Todos os Palpites
+                </button>
+            </div>
+
+            <div id="jogos-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <p class="text-sm text-zinc-500">Carregando partidas da arena...</p>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/supabase-config.js"></script>
+    <script src="js/palpites.js"></script>
+</body>
+
+</html>
