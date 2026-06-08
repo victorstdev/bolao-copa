@@ -6,85 +6,73 @@
     <title>Bolão Copa - Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="styles/main.css">
 </head>
 <body class="bg-zinc-950 text-white min-h-screen flex flex-col">
-
+    
+    <!-- Navbar -->
     <nav class="bg-zinc-900 border-b border-zinc-800 h-16 px-6 flex items-center justify-between">
         <div class="flex items-center gap-8">
-            <span class="font-black tracking-wider text-yellow-400 text-lg">BOLÃO COPA</span>
+            <span class="font-black tracking-wider text-amber-500 text-lg">BOLÃO COPA</span>
             <div class="flex gap-4 text-sm font-medium">
                 <a href="dashboard.html" class="text-white font-semibold">Dashboard</a>
                 <a href="palpites.html" class="text-zinc-400 hover:text-white transition-colors">Meus Palpites</a>
             </div>
         </div>
-        <div class="flex items-center gap-4">
-            <span id="welcome-user" class="text-sm font-medium text-zinc-300">...</span>
-            <button onclick="logout()" class="text-xs text-red-400 hover:underline">Sair</button>
-        </div>
+        <button onclick="window.supabaseClient.auth.signOut().then(() => window.location.href='index.html')" class="text-xs text-red-400 hover:underline font-bold">Sair</button>
     </nav>
 
-    <main class="flex-1 p-6 max-w-5xl w-full mx-auto space-y-6">
+    <!-- Main Content -->
+    <main class="flex-1 p-6 max-w-5xl w-full mx-auto space-y-8 pb-24">
         
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div class="bg-zinc-900 p-5 rounded-xl border border-zinc-800 flex justify-between items-center">
-                <span class="text-xs font-semibold uppercase text-zinc-400 tracking-wider">Meus Pontos</span>
-                <span id="user-points" class="text-2xl font-black text-emerald-400">0</span>
+        <!-- Cabeçalho e Resumo do Usuário -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-zinc-900 p-5 rounded-2xl border border-zinc-800 col-span-1 md:col-span-2 flex flex-col justify-center">
+                <h2 class="text-2xl font-bold text-zinc-100">E aí, <span id="user-welcome-name" class="text-amber-500">...</span>!</h2>
+                <p class="text-sm text-zinc-400 mt-1">Acompanhe seu desempenho e as conquistas desbloqueadas.</p>
             </div>
-            <div class="bg-zinc-900 p-5 rounded-xl border border-zinc-800 flex justify-between items-center">
-                <span class="text-xs font-semibold uppercase text-zinc-400 tracking-wider">Fichas de Ouro</span>
-                <span id="user-fichas" class="text-2xl font-black text-amber-400">0</span>
-            </div>
-        </div>
-
-        <div class="bg-zinc-900 rounded-xl border border-zinc-800 p-2 flex gap-2 overflow-x-auto">
-            <button onclick="alternarAba('ranking')" id="btn-tab-ranking" class="tab-btn flex-1 min-w-[120px] h-10 rounded-lg text-xs font-bold transition-all bg-zinc-800 text-white">
-                📊 Classificação Geral
-            </button>
-            <button onclick="alternarAba('grupos')" id="btn-tab-grupos" class="tab-btn flex-1 min-w-[120px] h-10 rounded-lg text-xs font-bold transition-all text-zinc-400 hover:bg-zinc-800/50">
-                ⚽ Fase de Grupos
-            </button>
-            <button onclick="alternarAba('matamata')" id="btn-tab-matamata" class="tab-btn flex-1 min-w-[120px] h-10 rounded-lg text-xs font-bold transition-all text-zinc-400 hover:bg-zinc-800/50">
-                🏆 Mata-Mata
-            </button>
-        </div>
-
-        <div id="conteudo-tab-ranking" class="tab-content grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="md:col-span-2 bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden">
-                <div class="p-4 border-b border-zinc-800 flex justify-between items-center bg-zinc-900/50">
-                    <h3 class="font-bold text-sm text-zinc-200">Ranking Geral da Galera</h3>
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <div class="grid grid-cols-2 gap-4 col-span-1">
+                <div class="bg-zinc-900 p-4 rounded-xl border border-zinc-800 flex flex-col justify-center items-center text-center">
+                    <span class="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Pontuação Geral</span>
+                    <span id="user-total-pontos" class="text-2xl font-black text-white mt-1">0 pts</span>
                 </div>
-                <table class="w-full text-left text-sm">
+                <div class="bg-zinc-900 p-4 rounded-xl border border-zinc-800 flex flex-col justify-center items-center text-center relative overflow-hidden">
+                    <span class="text-[10px] uppercase font-bold text-amber-500/80 tracking-wider">Fichas de Ouro</span>
+                    <span id="user-total-fichas" class="text-2xl font-black text-amber-400 mt-1 relative z-10">0</span>
+                    <div class="absolute inset-0 bg-amber-500/5 z-0"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- NOVO: Coleção de Medalhas da Arena -->
+        <div class="bg-zinc-900 rounded-2xl p-6 border border-zinc-800 space-y-4">
+            <div>
+                <h3 class="text-lg font-bold text-zinc-100 flex items-center gap-2">🏅 Coleção de Medalhas</h3>
+                <p class="text-xs text-zinc-400 mt-0.5">Crave palpites difíceis e junte conquistas ao longo do torneio.</p>
+            </div>
+            <div id="medalhas-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 pt-2">
+                <!-- Preenchido pelo dashboard.js -->
+            </div>
+        </div>
+
+        <!-- Ranking Geral -->
+        <div class="bg-zinc-900 rounded-2xl border border-zinc-800 overflow-hidden">
+            <div class="p-6 border-b border-zinc-800">
+                <h3 class="text-lg font-bold text-zinc-100">🏆 Classificação Geral</h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr class="bg-zinc-950/40 text-zinc-400 text-xs font-semibold uppercase border-b border-zinc-800">
-                            <th class="px-4 py-3 text-center w-16">Pos</th>
-                            <th class="px-4 py-3">Jogador</th>
-                            <th class="px-4 py-3 text-right">Pontos</th>
+                        <tr class="bg-zinc-950/50 text-xs uppercase tracking-wider text-zinc-500">
+                            <th class="p-4 w-12 text-center font-bold">Pos</th>
+                            <th class="p-4 font-bold">Participante</th>
+                            <th class="p-4 text-right font-bold">Pontos</th>
                         </tr>
                     </thead>
-                    <tbody id="ranking-body"></tbody>
+                    <tbody id="ranking-table-body">
+                        <!-- Preenchido pelo dashboard.js -->
+                    </tbody>
                 </table>
             </div>
-            <div class="bg-zinc-900 p-5 rounded-xl border border-zinc-800 space-y-4 h-fit">
-                <h3 class="font-bold text-sm text-zinc-100">Achievements Ativos</h3>
-                <div class="space-y-2 text-xs">
-                    <div class="p-2.5 bg-zinc-950/50 rounded-lg border border-zinc-800/60"><span class="text-amber-400 font-bold">🔮 Mãe Diná:</span> Placar exato dá +2 fichas.</div>
-                    <div class="p-2.5 bg-zinc-950/50 rounded-lg border border-zinc-800/60"><span class="text-amber-400 font-bold">💨 Secador:</span> Ganhar contra o favorito dá +1 ficha.</div>
-                </div>
-            </div>
-        </div>
-
-        <div id="conteudo-tab-grupos" class="tab-content hidden space-y-6">
-            <div id="filtro-grupos" class="flex gap-1.5 overflow-x-auto pb-1">
-                </div>
-            <div id="container-jogos-grupos" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                </div>
-        </div>
-
-        <div id="conteudo-tab-matamata" class="tab-content hidden grid grid-cols-1 gap-6">
-            <div id="container-jogos-matamata" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                </div>
         </div>
 
     </main>

@@ -1,197 +1,72 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bolão Copa - Admin Panel</title>
+    <title>Bolão Copa - ADMIN</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="styles/main.css">
 </head>
-
 <body class="bg-zinc-950 text-white min-h-screen flex flex-col">
-
+    
     <nav class="bg-zinc-900 border-b border-zinc-800 h-16 px-6 flex items-center justify-between">
         <div class="flex items-center gap-8">
-            <span class="font-black tracking-wider text-red-500 text-lg">PAINEL CONTROLE ADMIN</span>
-            <a href="dashboard.html" class="text-xs text-zinc-400 hover:text-white transition-colors">Voltar ao App</a>
+            <span class="font-black tracking-wider text-red-500 text-lg">ÁREA ADMIN</span>
         </div>
-        <div id="admin-status" class="text-xs font-mono text-amber-400">Verificando...</div>
+        <button onclick="window.supabaseClient.auth.signOut().then(() => window.location.href='index.html')" class="text-xs text-zinc-400 hover:text-white">Voltar ao Login</button>
     </nav>
 
-    <main class="flex-1 p-6 max-w-4xl w-full mx-auto space-y-8">
-
-        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
-            <h2 class="text-base font-bold text-zinc-100 mb-4">Nova Partida (SofaScore Sync Manual)</h2>
-            <form id="form-cadastro-partida" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                <div>
-                    <label class="block text-[11px] font-semibold uppercase text-zinc-400 mb-2">Seleção Casa</label>
-                    <select id="new-casa" required
-                        class="w-full h-10 bg-zinc-950 border border-zinc-800 rounded-lg px-2 text-sm text-zinc-300 focus:outline-none focus:border-red-500">
-                        <option value="">Selecione o Time da Casa</option>
-                        <option value="África do Sul">África do Sul</option>
-                        <option value="Alemanha">Alemanha</option>
-                        <option value="Argélia">Argélia</option>
-                        <option value="Arábia Saudita">Arábia Saudita</option>
-                        <option value="Argentina">Argentina</option>
-                        <option value="Austrália">Austrália</option>
-                        <option value="Áustria">Áustria</option>
-                        <option value="Bélgica">Bélgica</option>
-                        <option value="Bósnia e Herzegovina">Bósnia e Herzegovina</option>
-                        <option value="Brasil">Brasil</option>
-                        <option value="Cabo Verde">Cabo Verde</option>
-                        <option value="Canadá">Canadá</option>
-                        <option value="Catar">Catar</option>
-                        <option value="Colômbia">Colômbia</option>
-                        <option value="Coreia do Sul">Coreia do Sul</option>
-                        <option value="Costa do Marfim">Costa do Marfim</option>
-                        <option value="Croácia">Croácia</option>
-                        <option value="Curaçao">Curaçao</option>
-                        <option value="Egito">Egito</option>
-                        <option value="Equador">Equador</option>
-                        <option value="Escócia">Escócia</option>
-                        <option value="Espanha">Espanha</option>
-                        <option value="Estados Unidos">Estados Unidos</option>
-                        <option value="França">França</option>
-                        <option value="Gana">Gana</option>
-                        <option value="Haiti">Haiti</option>
-                        <option value="Holanda">Holanda</option>
-                        <option value="Inglaterra">Inglaterra</option>
-                        <option value="Iraque">Iraque</option>
-                        <option value="Irã">Irã</option>
-                        <option value="Japão">Japão</option>
-                        <option value="Jordânia">Jordânia</option>
-                        <option value="Marrocos">Marrocos</option>
-                        <option value="México">México</option>
-                        <option value="Noruega">Noruega</option>
-                        <option value="Nova Zelândia">Nova Zelândia</option>
-                        <option value="Panamá">Panamá</option>
-                        <option value="Paraguai">Paraguai</option>
-                        <option value="Portugal">Portugal</option>
-                        <option value="RD Congo">RD Congo</option>
-                        <option value="República Tcheca">República Tcheca</option>
-                        <option value="Senegal">Senegal</option>
-                        <option value="Suécia">Suécia</option>
-                        <option value="Suíça">Suíça</option>
-                        <option value="Tunísia">Tunísia</option>
-                        <option value="Turquia">Turquia</option>
-                        <option value="Uruguai">Uruguai</option>
-                        <option value="Uzbequistão">Uzbequistão</option>
-                    </select>
+    <main class="flex-1 p-6 max-w-5xl w-full mx-auto space-y-8 pb-24">
+        
+        <!-- Formulário de Cadastro de Novo Jogo -->
+        <div class="bg-zinc-900 rounded-2xl p-6 border border-zinc-800">
+            <h3 class="text-lg font-bold text-zinc-100 mb-4">Cadastrar Nova Partida</h3>
+            <form id="form-cadastro-partida" class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+                <div class="col-span-1 md:col-span-2 flex gap-2">
+                    <div class="flex-1">
+                        <label class="text-[10px] text-zinc-500 font-bold uppercase mb-1 block">Time Casa</label>
+                        <input type="text" id="new-casa" required class="w-full h-10 bg-zinc-950 border border-zinc-800 rounded px-3 text-sm text-white">
+                    </div>
+                    <div class="flex-1">
+                        <label class="text-[10px] text-zinc-500 font-bold uppercase mb-1 block">Time Fora</label>
+                        <input type="text" id="new-fora" required class="w-full h-10 bg-zinc-950 border border-zinc-800 rounded px-3 text-sm text-white">
+                    </div>
                 </div>
                 <div>
-                    <label class="block text-[11px] font-semibold uppercase text-zinc-400 mb-2">Seleção Fora</label>
-                    <select id="new-fora" required
-                        class="w-full h-10 bg-zinc-950 border border-zinc-800 rounded-lg px-2 text-sm text-zinc-300 focus:outline-none focus:border-red-500">
-                        <option value="">Selecione o Time de Fora</option>
-                        <option value="África do Sul">África do Sul</option>
-                        <option value="Alemanha">Alemanha</option>
-                        <option value="Argélia">Argélia</option>
-                        <option value="Arábia Saudita">Arábia Saudita</option>
-                        <option value="Argentina">Argentina</option>
-                        <option value="Austrália">Austrália</option>
-                        <option value="Áustria">Áustria</option>
-                        <option value="Bélgica">Bélgica</option>
-                        <option value="Bósnia e Herzegovina">Bósnia e Herzegovina</option>
-                        <option value="Brasil">Brasil</option>
-                        <option value="Cabo Verde">Cabo Verde</option>
-                        <option value="Canadá">Canadá</option>
-                        <option value="Catar">Catar</option>
-                        <option value="Colômbia">Colômbia</option>
-                        <option value="Coreia do Sul">Coreia do Sul</option>
-                        <option value="Costa do Marfim">Costa do Marfim</option>
-                        <option value="Croácia">Croácia</option>
-                        <option value="Curaçao">Curaçao</option>
-                        <option value="Egito">Egito</option>
-                        <option value="Equador">Equador</option>
-                        <option value="Escócia">Escócia</option>
-                        <option value="Espanha">Espanha</option>
-                        <option value="Estados Unidos">Estados Unidos</option>
-                        <option value="França">França</option>
-                        <option value="Gana">Gana</option>
-                        <option value="Haiti">Haiti</option>
-                        <option value="Holanda">Holanda</option>
-                        <option value="Inglaterra">Inglaterra</option>
-                        <option value="Iraque">Iraque</option>
-                        <option value="Irã">Irã</option>
-                        <option value="Japão">Japão</option>
-                        <option value="Jordânia">Jordânia</option>
-                        <option value="Marrocos">Marrocos</option>
-                        <option value="México">México</option>
-                        <option value="Noruega">Noruega</option>
-                        <option value="Nova Zelândia">Nova Zelândia</option>
-                        <option value="Panamá">Panamá</option>
-                        <option value="Paraguai">Paraguai</option>
-                        <option value="Portugal">Portugal</option>
-                        <option value="RD Congo">RD Congo</option>
-                        <option value="República Tcheca">República Tcheca</option>
-                        <option value="Senegal">Senegal</option>
-                        <option value="Suécia">Suécia</option>
-                        <option value="Suíça">Suíça</option>
-                        <option value="Tunísia">Tunísia</option>
-                        <option value="Turquia">Turquia</option>
-                        <option value="Uruguai">Uruguai</option>
-                        <option value="Uzbequistão">Uzbequistão</option>
-                    </select>
+                    <label class="text-[10px] text-zinc-500 font-bold uppercase mb-1 block">Fase do Torneio</label>
+                    <input type="text" id="new-fase" placeholder="Ex: Grupo A, Oitavas" required class="w-full h-10 bg-zinc-950 border border-zinc-800 rounded px-3 text-sm text-white">
                 </div>
                 <div>
-                    <label class="block text-[11px] font-semibold uppercase text-zinc-400 mb-2">Fase / Grupo</label>
-                    <select id="new-fase"
-                        class="w-full h-10 bg-zinc-950 border border-zinc-800 rounded-lg px-2 text-sm text-zinc-300 focus:outline-none focus:border-red-500">
-                        <option value="Grupo A">Grupo A</option>
-                        <option value="Grupo B">Grupo B</option>
-                        <option value="Grupo C">Grupo C</option>
-                        <option value="Grupo D">Grupo D</option>
-                        <option value="Grupo E">Grupo E</option>
-                        <option value="Grupo F">Grupo F</option>
-                        <option value="Grupo G">Grupo G</option>
-                        <option value="Grupo H">Grupo H</option>
-                        <option value="Segunda Rodada">Segunda Rodada (16-avos)</option>
-                        <option value="Oitavas">Oitavas de Final</option>
-                        <option value="Quartas">Quartas de Final</option>
-                        <option value="Semifinal">Semifinal</option>
-                        <option value="Final">Final</option>
-                    </select>
+                    <label class="text-[10px] text-zinc-500 font-bold uppercase mb-1 block">Data e Hora</label>
+                    <input type="datetime-local" id="new-data" required class="w-full h-10 bg-zinc-950 border border-zinc-800 rounded px-3 text-sm text-white [color-scheme:dark]">
                 </div>
-                <div class="md:col-span-2">
-                    <label class="block text-[11px] font-semibold uppercase text-zinc-400 mb-2">Data e Horário (Sua Hora
-                        Local)</label>
-                    <input type="datetime-local" id="new-data" required
-                        class="w-full h-10 bg-zinc-950 border border-zinc-800 rounded-lg px-3 text-sm text-white focus:outline-none focus:border-red-500">
-                </div>
-                <div class="flex items-center gap-4 py-2">
-                    <label class="flex items-center gap-2 text-xs text-zinc-300 cursor-pointer">
-                        <input type="checkbox" id="new-is-brasil"
-                            class="rounded bg-zinc-950 border-zinc-800 text-red-500">
-                        É jogo do Brasil?
+                <div class="flex items-center justify-between gap-4">
+                    <label class="flex items-center gap-2 text-xs text-yellow-500 font-bold cursor-pointer">
+                        <input type="checkbox" id="new-is-brasil" class="rounded bg-zinc-950 border-zinc-800 text-yellow-500 focus:ring-0">
+                        É do Brasil?
                     </label>
-                </div>
-                <div>
-                    <button type="submit"
-                        class="w-full h-10 bg-red-500 hover:bg-red-600 text-white font-bold text-xs rounded-lg transition-all shadow-md">
-                        Cadastrar Jogo
-                    </button>
+                    <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold h-10 px-4 rounded text-sm transition-colors">Cadastrar</button>
                 </div>
             </form>
         </div>
 
-        <!-- LISTA DE PARTIDAS EXISTENTES -->
+        <!-- Gestão de Jogos e Placares Reais -->
         <div class="space-y-4">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <h2 class="text-base font-bold text-zinc-100">Gerenciar Partidas Existentes</h2>
-                <!-- BOTÃO GERAL DO ADMIN -->
-                <button onclick="salvarTodasAsPartidas()"
-                    class="bg-red-500 hover:bg-red-600 text-white font-bold text-sm px-6 py-2.5 rounded-xl transition-all shadow-md">
-                    💾 Salvar Todas as Alterações
+            <div class="flex items-center justify-between border-b border-zinc-800 pb-2">
+                <h2 class="text-xl font-bold text-zinc-100">Gestão de Placares e Status</h2>
+                <button onclick="salvarTodasAsPartidas()" class="bg-red-600 hover:bg-red-700 text-white font-bold text-sm px-6 py-2 rounded-lg transition-colors">
+                    Salvar TUDO e Rodar Cálculos
                 </button>
             </div>
-            <div id="admin-jogos-container" class="grid grid-cols-1 gap-4"></div>
+            
+            <div id="admin-jogos-container" class="space-y-3">
+                <!-- Preenchido pelo admin.js -->
+            </div>
         </div>
+
     </main>
 
     <script src="js/supabase-config.js"></script>
     <script src="js/admin.js"></script>
 </body>
-
 </html>
