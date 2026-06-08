@@ -12,7 +12,7 @@
     <div class="bg-zinc-900 border border-zinc-800 p-8 rounded-2xl w-full max-w-md shadow-2xl">
         <div class="text-center mb-8">
             <h1 class="text-3xl font-black text-amber-500 tracking-wider">BOLÃO DA COPA</h1>
-            <p class="text-zinc-400 text-sm mt-2">Inicie sessão para gerir os seus palpites</p>
+            <p class="text-zinc-400 text-sm mt-2">Inicie sessão para gerenciar os seus palpites</p>
         </div>
 
         <form id="login-form" class="space-y-4">
@@ -21,7 +21,7 @@
                 <input type="email" id="email" required class="w-full h-12 bg-zinc-950 border border-zinc-800 rounded-lg px-4 text-white focus:outline-none focus:border-amber-500">
             </div>
             <div>
-                <label class="block text-xs font-bold text-zinc-500 uppercase tracking-wide mb-1">Palavra-passe</label>
+                <label class="block text-xs font-bold text-zinc-500 uppercase tracking-wide mb-1">Senha</label>
                 <input type="password" id="senha" required class="w-full h-12 bg-zinc-950 border border-zinc-800 rounded-lg px-4 text-white focus:outline-none focus:border-amber-500">
             </div>
             <button type="submit" id="btn-login" class="w-full h-12 mt-4 bg-amber-500 hover:bg-amber-600 text-black font-bold rounded-lg transition-colors">
@@ -33,7 +33,7 @@
 
         <div class="mt-6 text-center border-t border-zinc-800/60 pt-6">
             <p class="text-zinc-400 text-xs">Ainda não tem uma conta? <br>
-                <a href="cadastro.html" class="text-amber-500 hover:underline font-bold text-sm inline-block mt-1">Registe-se aqui</a>
+                <a href="cadastro.html" class="text-amber-500 hover:underline font-bold text-sm inline-block mt-1">Cadastre-se aqui</a>
             </p>
         </div>
     </div>
@@ -49,7 +49,7 @@
             
             errorMsg.classList.add('hidden');
             btn.disabled = true;
-            btn.textContent = 'A validar acesso...';
+            btn.textContent = 'Validando...';
             
             const { data, error } = await window.supabaseClient.auth.signInWithPassword({ email, password });
             
