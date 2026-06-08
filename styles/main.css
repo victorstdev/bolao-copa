@@ -1,30 +1,33 @@
 /* Estilos personalizados mínimos (Foco Industrial Limpo) */
 body {
-    font-family: 'Inter', sans-serif;
-    background-color: #09090b; /* zinc-950 */
+  font-family: "Inter", sans-serif;
+  background-color: #09090b; /* zinc-950 */
 }
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-    width: 6px;
+  width: 6px;
 }
 ::-webkit-scrollbar-track {
-    background: #09090b;
+  background: #09090b;
 }
 ::-webkit-scrollbar-thumb {
-    background: #27272a;
-    border-radius: 3px;
+  background: #27272a;
+  border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-    background: #3f3f46;
-}
-/* Remove as setas nativas para navegadores baseados em Webkit (Chrome, Safari, Edge, Opera) */
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
+  background: #3f3f46;
 }
 
+
 /* Remove as setas nativas para o Firefox */
-input[type=number] {
-    -moz-appearance: textfield;
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Oculta as setas no Firefox */
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
 }
