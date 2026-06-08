@@ -6,70 +6,70 @@
     <title>Bolão Copa - ADMIN</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
+    </style>
 </head>
 <body class="bg-zinc-950 text-white min-h-screen flex flex-col">
     
     <nav class="bg-zinc-900 border-b border-zinc-800 h-16 px-6 flex items-center justify-between">
-        <div class="flex items-center gap-8">
-            <span class="font-black tracking-wider text-red-500 text-lg">ÁREA ADMIN</span>
-        </div>
+        <span class="font-black tracking-wider text-red-500 text-lg">ÁREA ADMIN</span>
         <button onclick="window.supabaseClient.auth.signOut().then(() => window.location.href='index.html')" class="text-xs text-zinc-400 hover:text-white">Voltar ao Login</button>
     </nav>
 
     <main class="flex-1 p-6 max-w-5xl w-full mx-auto space-y-8 pb-24">
         
-        <!-- Formulário de Cadastro de Novo Jogo -->
         <div class="bg-zinc-900 rounded-2xl p-6 border border-zinc-800">
             <h3 class="text-lg font-bold text-zinc-100 mb-4">Cadastrar Nova Partida</h3>
-            <form id="form-cadastro-partida" class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+            <form id="form-cadastro-partida" class="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
                 <div class="col-span-1 md:col-span-2 flex gap-2">
                     <div class="flex-1">
                         <label class="text-[10px] text-zinc-500 font-bold uppercase mb-1 block">Time Casa</label>
-                        <input type="text" id="new-casa" required class="w-full h-10 bg-zinc-950 border border-zinc-800 rounded px-3 text-sm text-white">
+                        <select id="new-casa" required class="w-full h-10 bg-zinc-950 border border-zinc-800 rounded px-2 text-sm text-white focus:outline-none focus:border-red-500">
+                            <option value="" disabled selected>Selecione</option>
+                            <option value="África do Sul">África do Sul</option><option value="Alemanha">Alemanha</option><option value="Arábia Saudita">Arábia Saudita</option><option value="Argentina">Argentina</option><option value="Argélia">Argélia</option><option value="Austrália">Austrália</option><option value="Áustria">Áustria</option><option value="Bélgica">Bélgica</option><option value="Bósnia">Bósnia</option><option value="Brasil">Brasil</option><option value="Cabo Verde">Cabo Verde</option><option value="Canadá">Canadá</option><option value="Catar">Catar</option><option value="Colômbia">Colômbia</option><option value="Congo">Congo</option><option value="Coreia do Sul">Coreia do Sul</option><option value="Costa do Marfim">Costa do Marfim</option><option value="Croácia">Croácia</option><option value="Curaçao">Curaçao</option><option value="Egito">Egito</option><option value="Equador">Equador</option><option value="Escócia">Escócia</option><option value="Espanha">Espanha</option><option value="Estados Unidos">Estados Unidos</option><option value="França">França</option><option value="Gana">Gana</option><option value="Haiti">Haiti</option><option value="Holanda">Holanda</option><option value="Inglaterra">Inglaterra</option><option value="Irã">Irã</option><option value="Iraque">Iraque</option><option value="Japão">Japão</option><option value="Jordânia">Jordânia</option><option value="Marrocos">Marrocos</option><option value="México">México</option><option value="Noruega">Noruega</option><option value="Nova Zelândia">Nova Zelândia</option><option value="Panamá">Panamá</option><option value="Paraguai">Paraguai</option><option value="Portugal">Portugal</option><option value="República Tcheca">República Tcheca</option><option value="Senegal">Senegal</option><option value="Suécia">Suécia</option><option value="Suíça">Suíça</option><option value="Tunísia">Tunísia</option><option value="Turquia">Turquia</option><option value="Uruguai">Uruguai</option><option value="Uzbequistão">Uzbequistão</option>
+                        </select>
                     </div>
                     <div class="flex-1">
                         <label class="text-[10px] text-zinc-500 font-bold uppercase mb-1 block">Time Fora</label>
-                        <input type="text" id="new-fora" required class="w-full h-10 bg-zinc-950 border border-zinc-800 rounded px-3 text-sm text-white">
+                        <select id="new-fora" required class="w-full h-10 bg-zinc-950 border border-zinc-800 rounded px-2 text-sm text-white focus:outline-none focus:border-red-500">
+                            <option value="" disabled selected>Selecione</option>
+                            <option value="África do Sul">África do Sul</option><option value="Alemanha">Alemanha</option><option value="Arábia Saudita">Arábia Saudita</option><option value="Argentina">Argentina</option><option value="Argélia">Argélia</option><option value="Austrália">Austrália</option><option value="Áustria">Áustria</option><option value="Bélgica">Bélgica</option><option value="Bósnia">Bósnia</option><option value="Brasil">Brasil</option><option value="Cabo Verde">Cabo Verde</option><option value="Canadá">Canadá</option><option value="Catar">Catar</option><option value="Colômbia">Colômbia</option><option value="Congo">Congo</option><option value="Coreia do Sul">Coreia do Sul</option><option value="Costa do Marfim">Costa do Marfim</option><option value="Croácia">Croácia</option><option value="Curaçao">Curaçao</option><option value="Egito">Egito</option><option value="Equador">Equador</option><option value="Escócia">Escócia</option><option value="Espanha">Espanha</option><option value="Estados Unidos">Estados Unidos</option><option value="França">França</option><option value="Gana">Gana</option><option value="Haiti">Haiti</option><option value="Holanda">Holanda</option><option value="Inglaterra">Inglaterra</option><option value="Irã">Irã</option><option value="Iraque">Iraque</option><option value="Japão">Japão</option><option value="Jordânia">Jordânia</option><option value="Marrocos">Marrocos</option><option value="México">México</option><option value="Noruega">Noruega</option><option value="Nova Zelândia">Nova Zelândia</option><option value="Panamá">Panamá</option><option value="Paraguai">Paraguai</option><option value="Portugal">Portugal</option><option value="República Tcheca">República Tcheca</option><option value="Senegal">Senegal</option><option value="Suécia">Suécia</option><option value="Suíça">Suíça</option><option value="Tunísia">Tunísia</option><option value="Turquia">Turquia</option><option value="Uruguai">Uruguai</option><option value="Uzbequistão">Uzbequistão</option>
+                        </select>
                     </div>
                 </div>
                 <div>
-                    <label class="text-[10px] text-zinc-500 font-bold uppercase mb-1 block">Fase do Torneio</label>
-                    <select id="new-fase" required class="w-full h-10 bg-zinc-950 border border-zinc-800 rounded px-3 text-sm text-white">
-                        <option value="Fase de Grupos">Fase de Grupos</option>
-                        <option value="Oitavas de Final">Oitavas de Final</option>
-                        <option value="Quartas de Final">Quartas de Final</option>
-                        <option value="Semifinal">Semifinal</option>
-                        <option value="Final">Final</option>
+                    <label class="text-[10px] text-zinc-500 font-bold uppercase mb-1 block">Fase</label>
+                    <select id="new-fase" required class="w-full h-10 bg-zinc-950 border border-zinc-800 rounded px-3 text-sm text-white focus:outline-none focus:border-red-500 cursor-pointer">
+                        <option value="Fase de Grupos">Fase de Grupos</option><option value="Oitavas de Final">Oitavas de Final</option><option value="Quartas de Final">Quartas de Final</option><option value="Semifinal">Semifinal</option><option value="Disputa do 3º Lugar">Disputa do 3º Lugar</option><option value="Final">Final</option>
                     </select>
                 </div>
                 <div>
-                    <label class="text-[10px] text-zinc-500 font-bold uppercase mb-1 block">Data e Hora</label>
-                    <input type="datetime-local" id="new-data" required class="w-full h-10 bg-zinc-950 border border-zinc-800 rounded px-3 text-sm text-white [color-scheme:dark]">
+                    <label class="text-[10px] text-zinc-500 font-bold uppercase mb-1 block">Grupo (Opcional)</label>
+                    <input type="text" id="new-grupo" placeholder="Ex: Grupo A" class="w-full h-10 bg-zinc-950 border border-zinc-800 rounded px-3 text-sm text-white focus:border-red-500">
                 </div>
-                <div class="flex items-center justify-between gap-4">
-                    <label class="flex items-center gap-2 text-xs text-yellow-500 font-bold cursor-pointer">
+                <div>
+                    <label class="text-[10px] text-zinc-500 font-bold uppercase mb-1 block">Data e Hora</label>
+                    <input type="datetime-local" id="new-data" required class="w-full h-10 bg-zinc-950 border border-zinc-800 rounded px-3 text-sm text-white [color-scheme:dark] focus:border-red-500">
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label class="flex items-center gap-2 text-[10px] text-yellow-500 font-bold cursor-pointer h-4">
                         <input type="checkbox" id="new-is-brasil" class="rounded bg-zinc-950 border-zinc-800 text-yellow-500 focus:ring-0">
-                        É do Brasil?
+                        Do Brasil?
                     </label>
-                    <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold h-10 px-4 rounded text-sm transition-colors">Cadastrar</button>
+                    <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold h-10 w-full rounded text-sm transition-colors">Salvar</button>
                 </div>
             </form>
         </div>
 
-        <!-- Gestão de Jogos e Placares Reais -->
         <div class="space-y-4">
             <div class="flex items-center justify-between border-b border-zinc-800 pb-2">
                 <h2 class="text-xl font-bold text-zinc-100">Gestão de Placares e Status</h2>
-                <button onclick="salvarTodasAsPartidas()" class="bg-red-600 hover:bg-red-700 text-white font-bold text-sm px-6 py-2 rounded-lg transition-colors">
-                    Salvar TUDO e Rodar Cálculos
-                </button>
+                <button onclick="salvarTodasAsPartidas()" class="bg-red-600 hover:bg-red-700 text-white font-bold text-sm px-6 py-2 rounded-lg transition-colors">Salvar resultados</button>
             </div>
-            
-            <div id="admin-jogos-container" class="space-y-3">
-                <!-- Preenchido pelo admin.js -->
-            </div>
+            <div id="admin-jogos-container" class="space-y-3"></div>
         </div>
-
     </main>
 
     <script src="js/supabase-config.js"></script>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-PT">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -22,7 +22,7 @@
         <form id="cadastro-form" class="space-y-4">
             <div>
                 <label class="block text-xs font-bold text-zinc-500 uppercase tracking-wide mb-1">Como quer ser chamado?</label>
-                <input type="text" id="username" required placeholder="O seu nome ou apelido" class="w-full h-12 bg-zinc-950 border border-zinc-800 rounded-lg px-4 text-white focus:outline-none focus:border-amber-500 placeholder:text-zinc-700">
+                <input type="text" id="username" required placeholder="O seu nome ou alcunha" class="w-full h-12 bg-zinc-950 border border-zinc-800 rounded-lg px-4 text-white focus:outline-none focus:border-amber-500 placeholder:text-zinc-700">
             </div>
             <div>
                 <label class="block text-xs font-bold text-zinc-500 uppercase tracking-wide mb-1">E-mail</label>
@@ -33,8 +33,8 @@
                 <input type="password" id="senha" required placeholder="Mínimo 6 caracteres" class="w-full h-12 bg-zinc-950 border border-zinc-800 rounded-lg px-4 text-white focus:outline-none focus:border-amber-500 placeholder:text-zinc-700">
             </div>
             <div>
-                <label class="block text-xs font-bold text-zinc-500 uppercase tracking-wide mb-1">Código de Convite</label>
-                <input type="text" id="codigo-convite" required placeholder="Ex: FAMILIA" class="w-full h-12 bg-zinc-950 border border-zinc-800 rounded-lg px-4 text-white focus:outline-none focus:border-amber-500 placeholder:text-zinc-700 uppercase">
+                <label class="block text-xs font-bold text-zinc-500 uppercase tracking-wide mb-1">Código de Convite (Opcional)</label>
+                <input type="text" id="codigo-convite" placeholder="Ex: XYZ123" class="w-full h-12 bg-zinc-950 border border-zinc-800 rounded-lg px-4 text-white focus:outline-none focus:border-amber-500 placeholder:text-zinc-700 uppercase">
             </div>
             
             <button type="submit" id="btn-cadastrar" class="w-full h-12 mt-6 bg-amber-500 hover:bg-amber-600 text-black font-bold rounded-lg transition-colors">
@@ -44,10 +44,6 @@
         
         <p id="cadastro-error" class="text-red-400 text-sm text-center mt-4 hidden"></p>
         <p id="cadastro-success" class="text-emerald-400 text-sm text-center mt-4 hidden"></p>
-
-        <div class="mt-6 text-center border-t border-zinc-800/60 pt-6">
-            <p class="text-zinc-400 text-xs">Já faz parte do bolão? <a href="index.html" class="text-amber-500 hover:underline font-bold">Inicie sessão aqui</a></p>
-        </div>
     </div>
 
     <script src="js/supabase-config.js"></script>
@@ -58,7 +54,7 @@
             const username = document.getElementById('username').value;
             const email = document.getElementById('email').value;
             const password = document.getElementById('senha').value;
-            const codigoConvite = document.getElementById('codigo-convite').value.toUpperCase().trim(); // <-- Puxa o código de convite e formata para maiúsculas
+            const codigoConvite = document.getElementById('codigo-convite').value.toUpperCase().trim() || null;
             
             const errorMsg = document.getElementById('cadastro-error');
             const successMsg = document.getElementById('cadastro-success');
@@ -68,24 +64,18 @@
             successMsg.classList.add('hidden');
             
             if (password.length < 6) {
-                errorMsg.textContent = "A palavra-passe deve ter pelo menos 6 caracteres.";
+                errorMsg.textContent = "A senha deve ter pelo menos 6 caracteres.";
                 errorMsg.classList.remove('hidden');
                 return;
             }
 
             btn.disabled = true;
-            btn.textContent = 'A preparar a sua entrada...';
+            btn.textContent = 'Preparando seu login...';
             
-            // O signUp envia os dados base + o metadata (nome) que o Trigger SQL vai apanhar
             const { data, error } = await window.supabaseClient.auth.signUp({
                 email: email,
                 password: password,
-                options: {
-                    data: {
-                        username: username,
-                        codigo_convite: codigoConvite
-                    }
-                }
+                options: { data: { username: username, codigo_convite: codigoConvite } }
             });
             
             if (error) {
@@ -94,13 +84,9 @@
                 btn.disabled = false;
                 btn.textContent = 'Criar a Minha Conta';
             } else {
-                successMsg.textContent = "Conta criada com sucesso! A entrar na arena...";
+                successMsg.textContent = "Conta criada com sucesso! Entrando na arena...";
                 successMsg.classList.remove('hidden');
-                
-                // Redireciona automaticamente para o painel principal
-                setTimeout(() => {
-                    window.location.href = 'dashboard.html';
-                }, 1500);
+                setTimeout(() => { window.location.href = 'dashboard.html'; }, 1500);
             }
         });
     </script>
