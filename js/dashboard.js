@@ -11,8 +11,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     currentUserId = user.id;
+    // Dispara a carga de dados
     await carregarResumoPerfil(user.id);
-    await carregarRankingGeral();
+    await carregarRanking('Geral'); // <-- Atualizado aqui
     await carregarMedalhasPainel(user.id);
 });
 
@@ -34,31 +35,99 @@ async function carregarResumoPerfil(userId) {
     if (elFichas) elFichas.textContent = perfil.fichas_ouro_disponiveis !== null ? perfil.fichas_ouro_disponiveis : 0;
 }
 
-async function carregarRankingGeral() {
+// =========================================================================
+// 2. RENDERIZA O RANKING (GERAL OU POR FASE ESPECÍFICA)
+// =========================================================================
+async function carregarRanking(faseFiltro = 'Geral') {
     const container = document.getElementById('ranking-table-body');
     if (!container) return;
 
-    const { data: usuarios, error } = await window.supabaseClient
+    container.innerHTML = `<tr><td colspan="3" class="p-4 text-xs text-zinc-500 text-center animate-pulse">Calculando pontuações...</td></tr>`;
+
+    // 1. Busca a base de todos os usuários do grupo
+    const { data: profiles, error: errProf } = await window.supabaseClient
         .from('profiles')
-        .select('id, username, pontos_totais')
-        .order('pontos_totais', { ascending: false });
+        .select('id, username, pontos_totais');
 
-    if (error || !usuarios) return;
+    if (errProf || !profiles) {
+        container.innerHTML = `<tr><td colspan="3" class="p-4 text-xs text-red-400 text-center">Erro ao gerar tabela classificatória.</td></tr>`;
+        return;
+    }
 
+    let rankingData = [];
+
+    // 2. Lógica de Separação: Geral vs Fase Específica
+    if (faseFiltro === 'Geral') {
+        // Se for geral, pega os pontos totais consolidados na tabela
+        rankingData = profiles.map(p => ({
+            id: p.id,
+            username: p.username,
+            pontos: p.pontos_totais || 0
+        }));
+    } else {
+        // Se for fase específica, vamos calcular em tempo real!
+        // A. Busca quais jogos pertencem a essa fase e já estão encerrados
+        const { data: partidasDaFase } = await window.supabaseClient
+            .from('partidas')
+            .select('id')
+            .eq('fase', faseFiltro)
+            .eq('status', 'encerrado');
+
+        const idsPartidas = (partidasDaFase || []).map(p => p.id);
+
+        let palpitesDaFase = [];
+        
+        // B. Se houver jogos encerrados nessa fase, busca os palpites referentes a eles
+        if (idsPartidas.length > 0) {
+            const { data: palpites } = await window.supabaseClient
+                .from('palpites')
+                .select('user_id, pontos_ganhos')
+                .in('partida_id', idsPartidas);
+            
+            palpitesDaFase = palpites || [];
+        }
+
+        // C. Soma os pontos exclusivamente desses palpites para cada usuário
+        rankingData = profiles.map(p => {
+            const palpitesDoUser = palpitesDaFase.filter(palp => palp.user_id === p.id);
+            const pontosNaFase = palpitesDoUser.reduce((acc, curr) => acc + (curr.pontos_ganhos || 0), 0);
+            
+            return {
+                id: p.id,
+                username: p.username,
+                pontos: pontosNaFase
+            };
+        });
+    }
+
+    // 3. Ordena o array de usuários do maior para o menor pontuador
+    rankingData.sort((a, b) => b.pontos - a.pontos);
+
+    // 4. Renderiza a tabela HTML
     container.innerHTML = '';
-    usuarios.forEach((usuario, index) => {
+
+    rankingData.forEach((usuario, index) => {
         const posicao = index + 1;
         const isMe = usuario.id === currentUserId;
+
         let medalhaPosicao = `<span class="text-zinc-500 font-mono text-xs">${posicao}º</span>`;
-        if (posicao === 1) medalhaPosicao = '🥇'; else if (posicao === 2) medalhaPosicao = '🥈'; else if (posicao === 3) medalhaPosicao = '🥉';
+        if (posicao === 1) medalhaPosicao = '🥇';
+        else if (posicao === 2) medalhaPosicao = '🥈';
+        else if (posicao === 3) medalhaPosicao = '🥉';
 
         const linha = document.createElement('tr');
-        linha.className = `border-b border-zinc-800/50 text-sm transition-colors hover:bg-zinc-800/30 ${isMe ? 'bg-amber-500/5 font-semibold text-amber-400' : 'text-zinc-300'}`;
+        linha.className = `border-b border-zinc-800/50 text-sm transition-colors hover:bg-zinc-800/30 ${
+            isMe ? 'bg-amber-500/5 font-semibold text-amber-400' : 'text-zinc-300'
+        }`;
+
         linha.innerHTML = `
             <td class="p-4 w-12 text-center select-none">${medalhaPosicao}</td>
-            <td class="p-4 truncate max-w-[180px]">${usuario.username || 'Anônimo'} ${isMe ? '<span class="text-[10px] bg-amber-500/20 text-amber-500 px-1.5 py-0.5 rounded font-bold ml-1">VOCÊ</span>' : ''}</td>
-            <td class="p-4 text-right font-mono font-bold">${usuario.pontos_totais || 0}</td>
+            <td class="p-4 truncate max-w-[180px]">
+                ${usuario.username || 'Anônimo'} ${isMe ? '<span class="text-[10px] bg-amber-500/20 text-amber-500 px-1.5 py-0.5 rounded font-bold ml-1">VOCÊ</span>' : ''}
+            </td>
+            <td class="p-4 text-right font-mono font-bold">${usuario.pontos}</td>
         `;
+
         container.appendChild(linha);
     });
 }
@@ -95,3 +164,5 @@ async function carregarMedalhasPainel(userId) {
         container.appendChild(cardMedalha);
     });
 }
+
+window.carregarRanking = carregarRanking;

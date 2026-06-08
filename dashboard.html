@@ -56,8 +56,18 @@
 
         <!-- Ranking Geral -->
         <div class="bg-zinc-900 rounded-2xl border border-zinc-800 overflow-hidden">
-            <div class="p-6 border-b border-zinc-800">
-                <h3 class="text-lg font-bold text-zinc-100">🏆 Classificação Geral</h3>
+            <div class="p-5 border-b border-zinc-800 flex flex-col sm:flex-row justify-between items-center gap-4">
+                <h3 class="text-lg font-bold text-zinc-100">🏆 Classificação</h3>
+                
+                <select id="filtro-fase-ranking" onchange="carregarRanking(this.value)" class="bg-zinc-950 border border-zinc-800 rounded-lg text-xs font-semibold h-9 px-3 text-zinc-300 focus:outline-none focus:border-amber-500 cursor-pointer w-full sm:w-auto">
+                    <option value="Geral">Ranking Geral (Acumulado)</option>
+                    <option value="Fase de Grupos">Fase de Grupos</option>
+                    <option value="Oitavas de Final">Oitavas de Final</option>
+                    <option value="Quartas de Final">Quartas de Final</option>
+                    <option value="Semifinal">Semifinal</option>
+                    <option value="Disputa do 3º Lugar">Disputa do 3º Lugar</option>
+                    <option value="Final">Final</option>
+                </select>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
@@ -69,8 +79,7 @@
                         </tr>
                     </thead>
                     <tbody id="ranking-table-body">
-                        <!-- Preenchido pelo dashboard.js -->
-                    </tbody>
+                        </tbody>
                 </table>
             </div>
         </div>
