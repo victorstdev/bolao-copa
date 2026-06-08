@@ -1,160 +1,310 @@
 let currentUserId = null;
-let currentGrupoId = null;
+let ligaAtivaId = null; 
 
+// Variáveis para controlo do Modal de Partilha
+let modalCodigoAtual = '';
+let modalNomeLigaAtual = '';
+
+// =========================================================================
+// INICIALIZAÇÃO DO PAINEL
+// =========================================================================
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log("Checando autenticação no Supabase...");
+    console.log("A verificar autenticação no Supabase...");
     const { data: { user }, error } = await window.supabaseClient.auth.getUser();
     
     if (error || !user) { 
-        console.error("Usuário NÃO está logado ou token expirou.", error);
+        console.error("Utilizador NÃO tem sessão iniciada ou o token expirou.", error);
         window.location.href = 'index.html'; 
         return; 
     }
 
     currentUserId = user.id;
-    // Dispara a carga de dados
+
+    // Carga inicial de dados
     await carregarResumoPerfil(user.id);
-    await carregarRanking('Geral'); // <-- Atualizado aqui
+    await carregarLigasDoUsuario(); // Isto já vai disparar o carregarRanking automaticamente
     await carregarMedalhasPainel(user.id);
 });
 
+// =========================================================================
+// 1. CARTÕES DE RESUMO DO PERFIL (PONTOS E FICHAS)
+// =========================================================================
 async function carregarResumoPerfil(userId) {
-    // Fazemos um join simples no Supabase para trazer o nome da liga
     const { data: perfil, error } = await window.supabaseClient
         .from('profiles')
-        .select('pontos_totais, fichas_ouro_disponiveis, username, grupo_id, grupos(nome)')
+        .select('pontos_totais, fichas_ouro_disponiveis, username')
         .eq('id', userId)
         .maybeSingle();
 
-    if (error || !perfil) return;
-
-    currentGrupoId = perfil.grupo_id; // Guarda o ID do grupo na memória
+    if (error || !perfil) {
+        console.error("Erro ao puxar dados do perfil:", error);
+        return;
+    }
 
     const elNome = document.getElementById('user-welcome-name');
     const elPontos = document.getElementById('user-total-pontos');
     const elFichas = document.getElementById('user-total-fichas');
 
-    // DICA: Atualiza o HTML para mostrar em que liga a pessoa está (ex: "E aí, João! (Liga do Trabalho)")
-    if (elNome) {
-        const nomeLiga = perfil.grupos ? perfil.grupos.nome : 'Sem Liga';
-        elNome.innerHTML = `${perfil.username} <span class="text-xs text-zinc-500 font-normal">| ${nomeLiga}</span>`;
-    }
-    
+    if (elNome) elNome.innerHTML = `${perfil.username || 'Participante'}`;
     if (elPontos) elPontos.textContent = `${perfil.pontos_totais || 0} pts`;
     if (elFichas) elFichas.textContent = perfil.fichas_ouro_disponiveis !== null ? perfil.fichas_ouro_disponiveis : 0;
 }
 
 // =========================================================================
-// 2. RENDERIZA O RANKING (GERAL OU POR FASE ESPECÍFICA)
+// 2. GESTÃO DE LIGAS (MULTI-TENANT N:N)
 // =========================================================================
-async function carregarRanking(faseFiltro = 'Geral') {
-    const container = document.getElementById('ranking-table-body');
-    if (!container) return;
 
-    container.innerHTML = `<tr><td colspan="3" class="p-4 text-xs text-zinc-500 text-center animate-pulse">Calculando pontuações...</td></tr>`;
+// Busca as ligas a que o utilizador pertence e preenche o dropdown
+async function carregarLigasDoUsuario() {
+    const { data: vinculos } = await window.supabaseClient
+        .from('ligas_usuarios')
+        .select('grupo_id, grupos(nome)')
+        .eq('user_id', currentUserId);
 
-    // 1. Busca a base de todos os usuários do grupo
-    const { data: profiles, error: errProf } = await window.supabaseClient
-        .from('profiles')
-        .select('id, username, pontos_totais')
-        .eq('grupo_id', currentGrupoId); // <-- O FILTRO DE ISOLAMENTO
+    const seletor = document.getElementById('seletor-liga-ativa');
+    if (!seletor) return;
+    
+    seletor.innerHTML = '';
 
-    if (errProf || !profiles) {
-        container.innerHTML = `<tr><td colspan="3" class="p-4 text-xs text-red-400 text-center">Erro ao gerar tabela classificatória.</td></tr>`;
+    if (!vinculos || vinculos.length === 0) {
+        seletor.innerHTML = '<option value="">Não pertence a nenhuma liga</option>';
         return;
     }
 
+    vinculos.forEach((v, index) => {
+        const option = document.createElement('option');
+        option.value = v.grupo_id;
+        option.textContent = v.grupos.nome;
+        
+        if (index === 0) ligaAtivaId = v.grupo_id; // Seleciona a primeira por defeito
+        seletor.appendChild(option);
+    });
+
+    await carregarRanking('Geral');
+}
+
+// Alternância de contexto na Interface (quando troca no seletor)
+async function mudarLigaAtiva(novoGrupoId) {
+    if (!novoGrupoId) return;
+    ligaAtivaId = parseInt(novoGrupoId);
+    
+    const filtroFase = document.getElementById('filtro-fase-ranking');
+    if(filtroFase) filtroFase.value = 'Geral';
+    
+    await carregarRanking('Geral');
+}
+
+// Entrar numa liga existente através do código de convite
+async function entrarNovaLiga() {
+    const input = document.getElementById('novo-codigo-liga');
+    const codigo = input.value.toUpperCase().trim();
+    if (!codigo) return;
+
+    const { data: grupo } = await window.supabaseClient
+        .from('grupos')
+        .select('id, nome')
+        .eq('codigo_convite', codigo)
+        .maybeSingle();
+
+    if (!grupo) {
+        alert("Código inválido ou liga não encontrada.");
+        return;
+    }
+
+    const { error } = await window.supabaseClient
+        .from('ligas_usuarios')
+        .insert({ user_id: currentUserId, grupo_id: grupo.id });
+
+    if (error) {
+        alert("Você já pertence a esta liga ou ocorreu um erro de sistema.");
+    } else {
+        alert(`Bem-vindo(a) à ${grupo.nome}!`);
+        input.value = '';
+        await carregarLigasDoUsuario(); 
+    }
+}
+
+// =========================================================================
+// 3. CRIAÇÃO DE LIGA PRIVADA E MODAL DE PARTILHA
+// =========================================================================
+
+async function criarNovaLiga() {
+    const nomeLiga = prompt("Qual será o nome da sua nova Liga Privada?");
+    if (!nomeLiga || nomeLiga.trim() === "") return;
+
+    // Gera um código de convite aleatório de 6 caracteres (ex: 8XK9A2)
+    const codigoConvite = Math.random().toString(36).substring(2, 8).toUpperCase();
+
+    const { data: novaLiga, error: errLiga } = await window.supabaseClient
+        .from('grupos')
+        .insert([{ nome: nomeLiga.trim(), codigo_convite: codigoConvite }])
+        .select()
+        .single();
+
+    if (errLiga) {
+        alert("Ocorreu um erro ao criar a liga. Tente outro nome.");
+        return;
+    }
+
+    const { error: errVinculo } = await window.supabaseClient
+        .from('ligas_usuarios')
+        .insert([{ user_id: currentUserId, grupo_id: novaLiga.id }]);
+
+    if (errVinculo) {
+        alert("A liga foi criada, mas ocorreu um erro ao entrar nela.");
+    } else {
+        // Abre o modal elegante com as informações de partilha
+        abrirModalLiga(nomeLiga.trim(), codigoConvite);
+        
+        await carregarLigasDoUsuario();
+        const seletor = document.getElementById('seletor-liga-ativa');
+        if (seletor) {
+            seletor.value = novaLiga.id;
+            mudarLigaAtiva(novaLiga.id);
+        }
+    }
+}
+
+function abrirModalLiga(nome, codigo) {
+    modalCodigoAtual = codigo;
+    modalNomeLigaAtual = nome;
+    
+    document.getElementById('modal-liga-nome').textContent = nome;
+    document.getElementById('modal-liga-codigo').textContent = codigo;
+    
+    const modal = document.getElementById('modal-nova-liga');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function fecharModalLiga() {
+    const modal = document.getElementById('modal-nova-liga');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+
+function copiarCodigoLiga() {
+    navigator.clipboard.writeText(modalCodigoAtual).then(() => {
+        const btnIcon = document.querySelector('#modal-liga-codigo + button');
+        const htmlOriginal = btnIcon.innerHTML;
+        
+        // Dá feedback visual temporário (ícone de check verde)
+        btnIcon.innerHTML = `<svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
+        
+        setTimeout(() => { btnIcon.innerHTML = htmlOriginal; }, 2000);
+    });
+}
+
+function compartilharWhatsApp() {
+    const texto = `E aí! Criei a liga *${modalNomeLigaAtual}* no nosso bolão da Copa.\n\nAcesse o dashboard e use o código de convite: *${modalCodigoAtual}* para entrar na disputa!\n\n⚽🏆`;
+    const urlWa = `https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`;
+    window.open(urlWa, '_blank');
+}
+
+// =========================================================================
+// 4. MOTOR DE RANKING (CRUZAMENTO DE LIGA ATIVA E FASE)
+// =========================================================================
+async function carregarRanking(faseFiltro = 'Geral') {
+    const container = document.getElementById('ranking-table-body');
+    if (!container || !ligaAtivaId) return;
+    
+    container.innerHTML = `<tr><td colspan="3" class="p-4 text-xs text-zinc-500 text-center animate-pulse">Calculando pontuações...</td></tr>`;
+
+    // 1. Filtra utilizadores exclusivos da liga ativa selecionada
+    const { data: vinculos } = await window.supabaseClient
+        .from('ligas_usuarios')
+        .select('user_id')
+        .eq('grupo_id', ligaAtivaId);
+        
+    if (!vinculos || vinculos.length === 0) {
+        container.innerHTML = `<tr><td colspan="3" class="p-4 text-xs text-zinc-500 text-center">Nenhum participante encontrado nesta liga.</td></tr>`;
+        return;
+    }
+    
+    const idsNaLiga = vinculos.map(v => v.user_id);
+
+    // 2. Busca os perfis da base de dados correspondentes a esses IDs
+    const { data: profiles } = await window.supabaseClient
+        .from('profiles')
+        .select('id, username, pontos_totais')
+        .in('id', idsNaLiga);
+
     let rankingData = [];
 
-    // 2. Lógica de Separação: Geral vs Fase Específica
+    // 3. Aplica a separação de cálculo (Acumulado vs Fase Específica)
     if (faseFiltro === 'Geral') {
-        // Se for geral, pega os pontos totais consolidados na tabela
-        rankingData = profiles.map(p => ({
-            id: p.id,
-            username: p.username,
-            pontos: p.pontos_totais || 0
-        }));
+        rankingData = profiles.map(p => ({ id: p.id, username: p.username, pontos: p.pontos_totais || 0 }));
     } else {
-        // Se for fase específica, vamos calcular em tempo real!
-        // A. Busca quais jogos pertencem a essa fase e já estão encerrados
-        const { data: partidasDaFase } = await window.supabaseClient
+        const { data: partidas } = await window.supabaseClient
             .from('partidas')
             .select('id')
             .eq('fase', faseFiltro)
             .eq('status', 'encerrado');
-
-        const idsPartidas = (partidasDaFase || []).map(p => p.id);
-
-        let palpitesDaFase = [];
         
-        // B. Se houver jogos encerrados nessa fase, busca os palpites referentes a eles
+        const idsPartidas = (partidas || []).map(p => p.id);
+        
+        let palpites = [];
         if (idsPartidas.length > 0) {
-            const { data: palpites } = await window.supabaseClient
+            const { data: p } = await window.supabaseClient
                 .from('palpites')
                 .select('user_id, pontos_ganhos')
-                .in('partida_id', idsPartidas);
-            
-            palpitesDaFase = palpites || [];
+                .in('partida_id', idsPartidas)
+                .in('user_id', idsNaLiga);
+            palpites = p || [];
         }
 
-        // C. Soma os pontos exclusivamente desses palpites para cada usuário
         rankingData = profiles.map(p => {
-            const palpitesDoUser = palpitesDaFase.filter(palp => palp.user_id === p.id);
-            const pontosNaFase = palpitesDoUser.reduce((acc, curr) => acc + (curr.pontos_ganhos || 0), 0);
-            
-            return {
-                id: p.id,
-                username: p.username,
-                pontos: pontosNaFase
-            };
+            const pts = palpites.filter(palp => palp.user_id === p.id).reduce((acc, curr) => acc + (curr.pontos_ganhos || 0), 0);
+            return { id: p.id, username: p.username, pontos: pts };
         });
     }
 
-    // 3. Ordena o array de usuários do maior para o menor pontuador
+    // 4. Ordena do maior para o menor
     rankingData.sort((a, b) => b.pontos - a.pontos);
-
-    // 4. Renderiza a tabela HTML
     container.innerHTML = '';
 
-    rankingData.forEach((usuario, index) => {
-        const posicao = index + 1;
-        const isMe = usuario.id === currentUserId;
+    // 5. Injeta no HTML do Dashboard
+    rankingData.forEach((u, i) => {
+        const isMe = u.id === currentUserId;
+        const pos = i + 1;
+        
+        let icon = `<span class="text-zinc-500 font-mono text-xs">${pos}º</span>`;
+        if (pos === 1) icon = '🥇'; else if (pos === 2) icon = '🥈'; else if (pos === 3) icon = '🥉';
 
-        let medalhaPosicao = `<span class="text-zinc-500 font-mono text-xs">${posicao}º</span>`;
-        if (posicao === 1) medalhaPosicao = '🥇';
-        else if (posicao === 2) medalhaPosicao = '🥈';
-        else if (posicao === 3) medalhaPosicao = '🥉';
-
-        const linha = document.createElement('tr');
-        linha.className = `border-b border-zinc-800/50 text-sm transition-colors hover:bg-zinc-800/30 ${
-            isMe ? 'bg-amber-500/5 font-semibold text-amber-400' : 'text-zinc-300'
-        }`;
-
-        linha.innerHTML = `
-            <td class="p-4 w-12 text-center select-none">${medalhaPosicao}</td>
-            <td class="p-4 truncate max-w-[180px]">
-                ${usuario.username || 'Anônimo'} ${isMe ? '<span class="text-[10px] bg-amber-500/20 text-amber-500 px-1.5 py-0.5 rounded font-bold ml-1">VOCÊ</span>' : ''}
-            </td>
-            <td class="p-4 text-right font-mono font-bold">${usuario.pontos}</td>
+        container.innerHTML += `
+            <tr class="border-b border-zinc-800/50 text-sm hover:bg-zinc-800/30 transition-colors ${isMe ? 'bg-amber-500/5 font-semibold text-amber-400' : 'text-zinc-300'}">
+                <td class="p-4 w-12 text-center select-none">${icon}</td>
+                <td class="p-4 truncate max-w-[180px]">
+                    ${u.username || 'Anônimo'} ${isMe ? '<span class="text-[10px] bg-amber-500/20 text-amber-500 px-1.5 py-0.5 rounded ml-1 font-bold">VOCÊ</span>' : ''}
+                </td>
+                <td class="p-4 text-right font-mono font-bold">${u.pontos}</td>
+            </tr>
         `;
-
-        container.appendChild(linha);
     });
 }
 
+// =========================================================================
+// 5. MURAL DE MEDALHAS: PRETO E BRANCO VS COLORIDO COM CONTADOR
+// =========================================================================
 async function carregarMedalhasPainel(userId) {
     const container = document.getElementById('medalhas-container');
     if (!container) return;
 
-    const { data: todasMedalhas } = await window.supabaseClient.from('badges').select('*');
-    const { data: medalhasDoUsuario } = await window.supabaseClient.from('badges_usuario').select('badge_id').eq('user_id', userId);
+    const { data: todasMedalhas, error: errM } = await window.supabaseClient.from('badges').select('*');
+    const { data: medalhasDoUsuario, error: errU } = await window.supabaseClient.from('badges_usuario').select('badge_id').eq('user_id', userId);
 
-    if (!todasMedalhas) return;
+    if (errM || !todasMedalhas) {
+        container.innerHTML = `<p class="text-xs text-red-400 col-span-full text-center">Falha ao sincronizar mural de medalhas.</p>`;
+        return;
+    }
+
     container.innerHTML = '';
 
     const contagemMedalhas = {};
     if (medalhasDoUsuario) {
-        medalhasDoUsuario.forEach(reg => { contagemMedalhas[reg.badge_id] = (contagemMedalhas[reg.badge_id] || 0) + 1; });
+        medalhasDoUsuario.forEach(registro => {
+            contagemMedalhas[registro.badge_id] = (contagemMedalhas[registro.badge_id] || 0) + 1;
+        });
     }
 
     todasMedalhas.forEach(medalha => {
@@ -162,17 +312,31 @@ async function carregarMedalhasPainel(userId) {
         const jaPossui = vezesAdquirida > 0;
 
         const cardMedalha = document.createElement('div');
-        cardMedalha.className = `flex flex-col items-center text-center p-4 bg-zinc-950 rounded-xl border border-zinc-800/60 relative group transition-all duration-300 ${jaPossui ? 'border-amber-500/20 shadow-md shadow-amber-500/5' : 'grayscale opacity-30 hover:opacity-50'}`;
+        cardMedalha.className = `flex flex-col items-center text-center p-4 bg-zinc-950 rounded-xl border border-zinc-800/60 relative group transition-all duration-300 ${
+            jaPossui ? 'border-amber-500/20 shadow-md shadow-amber-500/5' : 'grayscale opacity-30 hover:opacity-50'
+        }`;
+
         const badgeContador = jaPossui ? `<span class="absolute -top-1.5 -right-1.5 bg-amber-500 text-black text-[10px] font-black px-1.5 py-0.5 rounded-md min-w-5 h-5 flex items-center justify-center border border-zinc-950 shadow animate-pulse">${vezesAdquirida}x</span>` : '';
 
         cardMedalha.innerHTML = `
             ${badgeContador}
             <div class="text-2xl mb-2 select-none">${medalha.icone || '🏅'}</div>
             <div class="text-xs font-bold tracking-wide ${jaPossui ? 'text-amber-400' : 'text-zinc-500'}">${medalha.nome}</div>
-            <div class="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-zinc-900 border border-zinc-800 text-[10px] text-zinc-300 rounded p-2 w-44 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50 text-center shadow-2xl leading-relaxed">${medalha.descricao}</div>
+            <div class="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-zinc-900 border border-zinc-800 text-[10px] text-zinc-300 rounded p-2 w-44 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50 text-center shadow-2xl leading-relaxed">
+                ${medalha.descricao}
+            </div>
         `;
         container.appendChild(cardMedalha);
     });
 }
 
+// =========================================================================
+// EXPOSIÇÃO GLOBAL (Para funcionar nos eventos HTML onClick/onChange)
+// =========================================================================
 window.carregarRanking = carregarRanking;
+window.mudarLigaAtiva = mudarLigaAtiva;
+window.entrarNovaLiga = entrarNovaLiga;
+window.criarNovaLiga = criarNovaLiga;
+window.fecharModalLiga = fecharModalLiga;
+window.copiarCodigoLiga = copiarCodigoLiga;
+window.compartilharWhatsApp = compartilharWhatsApp;
