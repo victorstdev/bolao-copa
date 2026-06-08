@@ -1,4 +1,5 @@
 let currentUserId = null;
+let currentGrupoId = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
     console.log("Checando autenticação no Supabase...");
@@ -18,19 +19,27 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 async function carregarResumoPerfil(userId) {
+    // Fazemos um join simples no Supabase para trazer o nome da liga
     const { data: perfil, error } = await window.supabaseClient
         .from('profiles')
-        .select('pontos_totais, fichas_ouro_disponiveis, username')
+        .select('pontos_totais, fichas_ouro_disponiveis, username, grupo_id, grupos(nome)')
         .eq('id', userId)
         .maybeSingle();
 
     if (error || !perfil) return;
 
+    currentGrupoId = perfil.grupo_id; // Guarda o ID do grupo na memória
+
     const elNome = document.getElementById('user-welcome-name');
     const elPontos = document.getElementById('user-total-pontos');
     const elFichas = document.getElementById('user-total-fichas');
 
-    if (elNome) elNome.textContent = perfil.username || 'Participante';
+    // DICA: Atualiza o HTML para mostrar em que liga a pessoa está (ex: "E aí, João! (Liga do Trabalho)")
+    if (elNome) {
+        const nomeLiga = perfil.grupos ? perfil.grupos.nome : 'Sem Liga';
+        elNome.innerHTML = `${perfil.username} <span class="text-xs text-zinc-500 font-normal">| ${nomeLiga}</span>`;
+    }
+    
     if (elPontos) elPontos.textContent = `${perfil.pontos_totais || 0} pts`;
     if (elFichas) elFichas.textContent = perfil.fichas_ouro_disponiveis !== null ? perfil.fichas_ouro_disponiveis : 0;
 }
@@ -47,7 +56,8 @@ async function carregarRanking(faseFiltro = 'Geral') {
     // 1. Busca a base de todos os usuários do grupo
     const { data: profiles, error: errProf } = await window.supabaseClient
         .from('profiles')
-        .select('id, username, pontos_totais');
+        .select('id, username, pontos_totais')
+        .eq('grupo_id', currentGrupoId); // <-- O FILTRO DE ISOLAMENTO
 
     if (errProf || !profiles) {
         container.innerHTML = `<tr><td colspan="3" class="p-4 text-xs text-red-400 text-center">Erro ao gerar tabela classificatória.</td></tr>`;
