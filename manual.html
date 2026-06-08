@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bolão Copa - Manual de Regras</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-zinc-950 text-white min-h-screen flex flex-col">
+    
+    <!-- Barra de Navegação Coerente com o Sistema -->
+    <nav class="bg-zinc-900 border-b border-zinc-800 h-16 px-6 flex items-center justify-between">
+        <div class="flex items-center gap-8">
+            <span class="font-black tracking-wider text-amber-500 text-lg">BOLÃO COPA</span>
+            <div class="flex gap-4 text-sm font-medium">
+                <a href="dashboard.html" class="text-zinc-400 hover:text-white transition-colors">Dashboard</a>
+                <a href="palpites.html" class="text-zinc-400 hover:text-white transition-colors">Meus Palpites</a>
+                <a href="manual.html" class="text-white font-semibold border-b-2 border-amber-500 pb-5 mt-1">Manual</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Conteúdo Principal -->
+    <main class="flex-1 p-6 max-w-4xl w-full mx-auto space-y-8 pb-24">
+        
+        <!-- Cabeçalho Principal -->
+        <div class="border-b border-zinc-800 pb-4">
+            <h2 class="text-2xl font-black text-zinc-100 tracking-wide">📖 Manual do Competidor</h2>
+            <p class="text-xs text-zinc-400 mt-1">Entenda o sistema de pontuações, uso de fichas e como conquistar o mural de medalhas.</p>
+        </div>
+
+        <!-- SEÇÃO 1: SISTEMA DE PONTUAÇÃO -->
+        <section class="bg-zinc-900 rounded-2xl p-6 border border-zinc-800 space-y-4">
+            <h3 class="text-lg font-bold text-amber-400 flex items-center gap-2">🏆 1. Critérios de Pontuação</h3>
+            <p class="text-sm text-zinc-300 leading-relaxed">
+                O sistema calcula os seus pontos de forma automática assim que o administrador encerra uma partida.
+            </p>
+            
+            <div class="overflow-x-auto pt-2">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-zinc-950/50 text-xs uppercase tracking-wider text-zinc-500 border-b border-zinc-800">
+                            <th class="p-3 font-bold">Resultado</th>
+                            <th class="p-3 font-bold text-center">Pontos</th>
+                            <th class="p-3 text-zinc-400">Exemplo Prático (Placar Real: 2x1)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-sm text-zinc-300">
+                        <tr class="border-b border-zinc-800/50">
+                            <td class="p-3 font-semibold text-zinc-100">Placar Exato</td>
+                            <td class="p-3 text-center font-mono font-bold text-emerald-400">+20</td>
+                            <td class="p-3 text-xs text-zinc-500">Acertou em cheio o palpite de 2x1.</td>
+                        </tr>
+                        <tr class="border-b border-zinc-800/50">
+                            <td class="p-3 font-semibold text-zinc-100">Vencedor ou Empate</td>
+                            <td class="p-3 text-center font-mono font-bold text-amber-500">+15</td>
+                            <td class="p-3 text-xs text-zinc-500">Palpitou 1x0 ou 2x4 (Acertou o vencedor/empate).</td>
+                        </tr>
+                        <tr>
+                            <td class="p-3 font-semibold text-zinc-100">Erro Total</td>
+                            <td class="p-3 text-center font-mono font-bold text-red-400">0</td>
+                            <td class="p-3 text-xs text-zinc-500">Palpitou vitória do outro time ou empate num jogo com vencedor.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- SEÇÃO 2: FICHAS E ARTILHEIRO -->
+        <section class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            
+            <!-- Fichas de Ouro -->
+            <div class="bg-zinc-900 rounded-2xl p-6 border border-zinc-800 flex flex-col gap-3">
+                <h3 class="text-base font-bold text-amber-400 flex items-center gap-2">✨ 2. Fichas de Ouro (Multiplicador)</h3>
+                <p class="text-xs text-zinc-400 leading-relaxed">
+                    Cada pessoa começa o torneio com exatamente <span class="text-amber-400 font-bold">3 Fichas de Ouro</span> disponíveis na sua conta para gastar quando quiser.
+                </p>
+                <blockquote class="bg-zinc-950 p-3 rounded-lg border border-zinc-800 text-xs text-zinc-300 leading-relaxed">
+                    <strong class="text-zinc-100 block mb-1">Como Funciona:</strong>
+                    Ao marcar a caixa "Ficha de Ouro" num cartão de palpite, qualquer pontuação obtida nessa partida será **multiplicada por 2**. Um Placar Exato passa a valer **40 pontos** em vez de 20. Use com sabedoria nos jogos onde tiver maior certeza!
+                </blockquote>
+            </div>
+
+            <!-- Artilheiro de Ouro -->
+            <div class="bg-zinc-900 rounded-2xl p-6 border border-zinc-800 flex flex-col gap-3">
+                <h3 class="text-base font-bold text-yellow-500 flex items-center gap-2">⭐ 3. Artilheiro de Ouro (Exclusivo Brasil)</h3>
+                <p class="text-xs text-zinc-400 leading-relaxed">
+                    Nos jogos da seleção brasileira, uma lista suspensa aparece para escolher um jogador que você acha que fará gol.
+                </p>
+                <blockquote class="bg-zinc-950 p-3 rounded-lg border border-zinc-800 text-xs text-zinc-300 leading-relaxed">
+                    <strong class="text-zinc-100 block mb-1">Bônus por Gol:</strong>
+                    Pra cada gol que o jogador escolhido marcar na partida, você receberá um bônus de **+3 pontos extras**.
+                </blockquote>
+            </div>
+        </section>
+
+        <!-- SEÇÃO 3: SISTEMA DE MEDALHAS -->
+        <section class="bg-zinc-900 rounded-2xl p-6 border border-zinc-800 space-y-4">
+            <h3 class="text-lg font-bold text-amber-400 flex items-center gap-2">🏅 4. Medalhas e Conquistas</h3>
+            <p class="text-sm text-zinc-300 leading-relaxed">
+                As medalhas funcionam como uma recompensa por acertar certas condições e podem garantir mais fichas de ouro pra usar nas partidas. Essas são as medalhas disponíveis:
+            </p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                <div class="bg-zinc-950 p-3 rounded-xl border border-zinc-800/60 flex items-start gap-3">
+                    <span class="text-xl p-1 bg-zinc-900 rounded-lg select-none">🥇</span>
+                    <div>
+                        <h4 class="text-xs font-bold text-amber-400">Mãe Diná (2 fichas)</h4>
+                        <p class="text-[11px] text-zinc-500 mt-0.5">Conquistada ao acertar o placar exato de um jogo.</p>
+                    </div>
+                </div>
+                
+                <div class="bg-zinc-950 p-3 rounded-xl border border-zinc-800/60 flex items-start gap-3">
+                    <span class="text-xl p-1 bg-zinc-900 rounded-lg select-none">🔥</span>
+                    <div>
+                        <h4 class="text-xs font-bold text-amber-400">Secador Profissional (1 ficha)</h4>
+                        <p class="text-[11px] text-zinc-500 mt-0.5">Conquistada ao apostar contra o favorito da partida pelos usuários e acertar o resultado.</p>
+                    </div>
+                </div>
+
+                <div class="bg-zinc-950 p-3 rounded-xl border border-zinc-800/60 flex items-start gap-3">
+                    <span class="text-xl p-1 bg-zinc-900 rounded-lg select-none">🎩</span>
+                    <div>
+                        <h4 class="text-xs font-bold text-amber-400">Inimigo da Lógica (2 fichas)</h4>
+                        <p class="text-[11px] text-zinc-500 mt-0.5">Conquistada ao acertar um placar que menos de 5% dos usuários acertaram.</p>
+                    </div>
+                </div>
+
+                <div class="bg-zinc-950 p-3 rounded-xl border border-zinc-800/60 flex items-start gap-3">
+                    <span class="text-xl p-1 bg-zinc-900 rounded-lg select-none">🔦</span>
+                    <div>
+                        <h4 class="text-xs font-bold text-amber-400">Lanterna Verde (1 ficha)</h4>
+                        <p class="text-[11px] text-zinc-500 mt-0.5">Ganha 1 ficha extra de ajuda humanitária por ir mal na rodada.</p>
+                    </div>
+                </div>
+
+                <div class="bg-zinc-950 p-3 rounded-xl border border-zinc-800/60 flex items-start gap-3">
+                    <span class="text-xl p-1 bg-zinc-900 rounded-lg select-none">🏹</span>
+                    <div>
+                        <h4 class="text-xs font-bold text-amber-400">Robin Hood (2 fichas)</h4>
+                        <p class="text-[11px] text-zinc-500 mt-0.5">Acertou o placar exato de uma zebra da rodada.</p>
+                    </div>
+                </div>
+
+                <div class="bg-zinc-950 p-3 rounded-xl border border-zinc-800/60 flex items-start gap-3">
+                    <span class="text-xl p-1 bg-zinc-900 rounded-lg select-none">⚽</span>
+                    <div>
+                        <h4 class="text-xs font-bold text-amber-400">Inimigo do Gol (0 ficha)</h4>
+                        <p class="text-[11px] text-zinc-500 mt-0.5">Acumulou o azar impressionante de fazer zero pontos em um jogo.</p>
+                    </div>
+                </div>
+                
+                <div class="bg-zinc-950 p-3 rounded-xl border border-zinc-800/60 flex items-start gap-3">
+                    <span class="text-xl p-1 bg-zinc-900 rounded-lg select-none">🎯</span>
+                    <div>
+                        <h4 class="text-xs font-bold text-amber-400">Sniper (2 fichas)</h4>
+                        <p class="text-[11px] text-zinc-500 mt-0.5">Seu Artilheiro destruiu o jogo e fez 2 ou mais gols.</p>
+                    </div>
+                </div>
+                
+                <div class="bg-zinc-950 p-3 rounded-xl border border-zinc-800/60 flex items-start gap-3">
+                    <span class="text-xl p-1 bg-zinc-900 rounded-lg select-none">🐎</span>
+                    <div>
+                        <h4 class="text-xs font-bold text-amber-400">Cavalo de Troia (1 ficha)</h4>
+                        <p class="text-[11px] text-zinc-500 mt-0.5">Você torceu contra a pátria, o Brasil perdeu, mas você pontuou!</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+</body>
+</html>
