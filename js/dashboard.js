@@ -41,6 +41,16 @@ async function carregarLigasDoUsuario() {
         seletor.appendChild(option);
     });
 
+    const { data: partidasUnicas } = await window.supabaseClient.from('partidas').select('fase');
+    const seletorFase = document.getElementById('filtro-fase-ranking');
+    if (seletorFase && partidasUnicas) {
+        const fasesExistentes = [...new Set(partidasUnicas.map(p => p.fase))];
+        seletorFase.innerHTML = '<option value="Geral">Ranking Geral (Acumulado)</option>';
+        fasesExistentes.forEach(f => {
+            seletorFase.innerHTML += `<option value="${f}">${f}</option>`;
+        });
+    }
+
     await carregarRanking('Geral');
 }
 

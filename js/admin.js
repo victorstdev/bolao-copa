@@ -97,11 +97,16 @@ async function salvarTodasAsPartidas() {
 
 document.getElementById('form-cadastro-partida')?.addEventListener('submit', async (e) => {
     e.preventDefault();
+    
+    // Captura o valor do grupo e remove espaços. Se ficar vazio (""), envia null.
+    let valorGrupo = document.getElementById('new-grupo').value.trim();
+    if (valorGrupo === "") valorGrupo = null;
+
     const { error } = await window.supabaseClient.from('partidas').insert([{
         time_casa: document.getElementById('new-casa').value,
         time_fora: document.getElementById('new-fora').value,
         fase: document.getElementById('new-fase').value,
-        grupo: document.getElementById('new-grupo').value || null, // Campo Opcional Capturado
+        grupo: valorGrupo,
         data_hora: new Date(document.getElementById('new-data').value).toISOString(),
         is_brasil: document.getElementById('new-is-brasil').checked
     }]);
