@@ -23,8 +23,10 @@ async function carregarPartidasAdmin() {
     partidas.forEach(partida => {
         const dataJogo = new Date(partida.data_hora);
         const card = document.createElement('div');
-        card.className = "card-admin-jogo bg-zinc-900 rounded-xl p-5 border border-zinc-800 flex flex-col gap-4";
-        card.dataset.partidaId = partida.id; card.dataset.isBrasil = partida.is_brasil;
+        card.className = "card-admin-jogo bg-zinc-900 rounded-xl p-5 border border-zinc-800 flex flex-col gap-4 transition-all";
+        card.id = `card-partida-${partida.id}`;
+        card.dataset.partidaId = partida.id;
+        card.dataset.isBrasil = partida.is_brasil;
 
         let painelGolsReais = '';
         if (partida.is_brasil) {
@@ -55,6 +57,9 @@ async function carregarPartidasAdmin() {
                         <option value="em_andamento" ${partida.status === 'em_andamento' ? 'selected' : ''}>⏳ Em Andamento</option>
                         <option value="encerrado" ${partida.status === 'encerrado' ? 'selected' : ''}>🛑 Encerrado</option>
                     </select>
+                    <button type="button" onclick="salvarPartidaIndividual(${partida.id})" class="bg-zinc-800 hover:bg-zinc-700 text-white border border-zinc-700 text-xs font-bold h-10 px-4 rounded-lg transition-colors whitespace-nowrap">
+                        Salvar
+                    </button>
                 </div>
             </div>
             ${painelGolsReais}`;
@@ -72,27 +77,48 @@ function adicionarGolRealAdmin(partidaId, jogadorIdSel = null) {
     container.appendChild(wrapper);
 }
 
-async function salvarTodasAsPartidas() {
-    for (const card of document.querySelectorAll('.card-admin-jogo')) {
-        const pId = card.dataset.partidaId;
-        const gC = document.getElementById(`admin-gols-casa-${pId}`).value, gF = document.getElementById(`admin-gols-fora-${pId}`).value;
-        const status = document.getElementById(`admin-status-${pId}`).value;
-        const dataUpt = { status: status };
-        if (gC !== "" && gF !== "") { dataUpt.gols_casa = parseInt(gC); dataUpt.gols_fora = parseInt(gF); }
+async function salvarPartidaIndividual(partidaId) {
+    const card = document.getElementById(`card-partida-${partidaId}`);
+    const btn = card.querySelector('button[onclick^="salvarPartidaIndividual"]');
+    
+    const originalText = btn.textContent;
+    btn.textContent = "⏳ ...";
+    btn.disabled = true;
 
-        const { error: err } = await window.supabaseClient.from('partidas').update(dataUpt).eq('id', pId);
-        if (err) { alert(`Erro: ${err.message}`); continue; }
+    const gC = document.getElementById(`admin-gols-casa-${partidaId}`).value;
+    const gF = document.getElementById(`admin-gols-fora-${partidaId}`).value;
+    const status = document.getElementById(`admin-status-${partidaId}`).value;
+    
+    const dataUpt = { status: status };
+    if (gC !== "" && gF !== "") { dataUpt.gols_casa = parseInt(gC); dataUpt.gols_fora = parseInt(gF); }
 
-        if (card.dataset.isBrasil === 'true') {
-            await window.supabaseClient.from('gols_partida').delete().eq('partida_id', parseInt(pId));
-            const dadosGols = [];
-            document.getElementById(`admin-lista-gols-${pId}`).querySelectorAll('.select-gol-real').forEach(sel => {
-                if (sel.value) dadosGols.push({ partida_id: parseInt(pId), jogador_id: parseInt(sel.value), quantidade: 1 });
-            });
-            if (dadosGols.length > 0) await window.supabaseClient.from('gols_partida').insert(dadosGols);
-        }
+    // 1. Atualiza a partida individualmente no Supabase
+    const { error: err } = await window.supabaseClient.from('partidas').update(dataUpt).eq('id', partidaId);
+    
+    if (err) {
+        alert(`Erro ao salvar: ${err.message}`);
+        btn.textContent = originalText;
+        btn.disabled = false;
+        return;
     }
-    alert("Dados atualizados com sucesso!"); await carregarPartidasAdmin();
+
+    // 2. Se for partida do Brasil, gerencia os golos reais
+    if (card.dataset.isBrasil === 'true') {
+        await window.supabaseClient.from('gols_partida').delete().eq('partida_id', partidaId);
+        const dadosGols = [];
+        document.getElementById(`admin-lista-gols-${partidaId}`).querySelectorAll('.select-gol-real').forEach(sel => {
+            if (sel.value) dadosGols.push({ partida_id: partidaId, jogador_id: parseInt(sel.value), quantidade: 1 });
+        });
+        if (dadosGols.length > 0) await window.supabaseClient.from('gols_partida').insert(dadosGols);
+    }
+
+    // Feedback visual rápido de sucesso na linha
+    btn.className = "bg-emerald-600 text-white text-xs font-bold h-10 px-4 rounded-lg transition-colors whitespace-nowrap";
+    btn.textContent = "✓ Salvo";
+    
+    setTimeout(async () => {
+        await carregarPartidasAdmin();
+    }, 1000);
 }
 
 document.getElementById('form-cadastro-partida')?.addEventListener('submit', async (e) => {
@@ -114,5 +140,5 @@ document.getElementById('form-cadastro-partida')?.addEventListener('submit', asy
     else { alert("Partida cadastrada!"); document.getElementById('form-cadastro-partida').reset(); await carregarPartidasAdmin(); }
 });
 
-window.salvarTodasAsPartidas = salvarTodasAsPartidas;
 window.adicionarGolRealAdmin = adicionarGolRealAdmin;
+window.salvarPartidaIndividual = salvarPartidaIndividual;
