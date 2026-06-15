@@ -12,7 +12,7 @@ const mapaBandeiras = {
     "áfrica do sul": "za", "alemanha": "de", "arábia saudita": "sa", "argentina": "ar", 
     "argélia": "dz", "austrália": "au", "áustria": "at", "bélgica": "be", 
     "bósnia": "ba", "brasil": "br", "cabo verde": "cv", "canadá": "ca", 
-    "catar": "qa", "colômbia": "co", "congo": "cg", "coreia do sul": "kr", 
+    "catar": "qa", "colômbia": "co", "congo": "cd", "coreia do sul": "kr", 
     "costa do marfim": "ci", "croácia": "hr", "curaçao": "cw", "egito": "eg", 
     "equador": "ec", "escócia": "gb-sct", "espanha": "es", "estados unidos": "us", 
     "frança": "fr", "gana": "gh", "haiti": "ht", "holanda": "nl", 
@@ -135,12 +135,13 @@ function renderizarJogosDaFaseAtiva() {
             const dataJogo = new Date(partida.data_hora);
             const mercadoFechado = (new Date() >= new Date(dataJogo.getTime() - 10 * 60 * 1000)) || (partida.status !== 'agendado');
             
-            const dataStr = dataJogo.toLocaleString('pt-PT', { 
+            const dataStr = dataJogo.toLocaleString('pt-BR', { 
                 weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' 
             }).replace(',', ' às');
 
             const card = document.createElement('div');
             card.className = "card-jogo bg-zinc-900 rounded-xl p-3 border border-zinc-800 flex flex-col gap-3 relative overflow-hidden transition-colors hover:bg-zinc-800/40";
+            card.id = `card-palpite-${partida.id}`;
             card.dataset.partidaId = partida.id; 
             card.dataset.mercadoFechado = mercadoFechado; 
             card.dataset.isBrasil = partida.is_brasil;
@@ -189,12 +190,12 @@ function renderizarJogosDaFaseAtiva() {
                 
                 ${subpainelGols}
                 
-                <div class="flex items-center justify-between pt-2 border-t border-zinc-800/60 mt-1">
+                <div class="flex items-center justify-between pt-2 border-t border-zinc-800/60 mt-1 h-8">
                     <label class="flex items-center gap-1.5 text-[10px] text-zinc-400 cursor-pointer font-medium">
                         <input type="checkbox" id="ficha-ouro-${partida.id}" ${palpite?.usa_ficha_ouro ? 'checked' : ''} ${mercadoFechado ? 'disabled' : ''} class="rounded bg-zinc-950 border-zinc-800 text-amber-500 focus:ring-0 w-3 h-3"> 
                         ✨ Ficha de Ouro (2x)
                     </label>
-                    ${mercadoFechado ? `<span class="text-[10px] font-bold text-zinc-500">Pts ganhos: <span class="text-white">${palpite?.pontos_ganhos || 0}</span></span>` : ''}
+                    ${mercadoFechado ? `<span class="text-[10px] font-bold text-zinc-500">Pts ganhos: <span class="text-white">${palpite?.pontos_ganhos || 0}</span></span>` : `<button type="button" onclick="salvarPalpiteIndividual(${partida.id})" class="bg-amber-500 hover:bg-amber-600 text-black text-[10px] font-bold px-3 py-1.5 rounded transition-colors whitespace-nowrap shadow-md shadow-amber-500/10">Salvar</button>`}
                 </div>`;
             
             container.appendChild(card);
@@ -205,71 +206,84 @@ function renderizarJogosDaFaseAtiva() {
 // =========================================================================
 // 5. MOTOR DE GRAVAÇÃO DE PALPITES
 // =========================================================================
-async function salvarTodosOsPalpites() {
+async function salvarPalpiteIndividual(partidaId) {
     if (!currentUserId) return;
-    
-    // Botão muda para estado de carregamento
-    const btn = document.querySelector('button[onclick="salvarTodosOsPalpites()"]');
+
+    const card = document.getElementById(`card-palpite-${partidaId}`);
+    if (!card || card.dataset.mercadoFechado === 'true') return;
+
+    const btn = card.querySelector('button[onclick^="salvarPalpiteIndividual"]');
     const textoOriginal = btn.innerHTML;
-    btn.innerHTML = 'Processando...';
+    btn.innerHTML = '⏳...';
     btn.disabled = true;
 
-    for (const card of document.querySelectorAll('.card-jogo')) {
-        const pId = card.dataset.partidaId;
-        if (card.dataset.mercadoFechado === 'true') continue;
+    const inputCasa = document.getElementById(`gols-casa-${partidaId}`).value;
+    const inputFora = document.getElementById(`gols-fora-${partidaId}`).value;
+    const usaFicha = document.getElementById(`ficha-ouro-${partidaId}`).checked;
+
+    // Bloqueia tentativas de guardar palpites em branco
+    if (inputCasa === "" || inputFora === "") {
+        alert("Preencha o placar das duas seleções antes de salvar.");
+        btn.innerHTML = textoOriginal;
+        btn.disabled = false;
+        return;
+    }
+
+    // 1. Grava o palpite de placar na base de dados
+    const { data: res, error } = await window.supabaseClient.from('palpites')
+        .upsert({ 
+            user_id: currentUserId, 
+            partida_id: parseInt(partidaId), 
+            palpite_casa: parseInt(inputCasa), 
+            palpite_fora: parseInt(inputFora), 
+            usa_ficha_ouro: usaFicha 
+        }, { onConflict: 'user_id,partida_id' })
+        .select();
         
-        const iC = document.getElementById(`gols-casa-${pId}`).value;
-        const iF = document.getElementById(`gols-fora-${pId}`).value;
-        const usaFicha = document.getElementById(`ficha-ouro-${pId}`).checked;
+    if (error) { 
+        alert(`Erro ao salvar: ${error.message}`); 
+        btn.innerHTML = textoOriginal;
+        btn.disabled = false;
+        return; 
+    }
+    
+    // 2. Grava o artilheiro se for um jogo do Brasil
+    if (card.dataset.isBrasil === 'true') {
+        let pIdDb = (res && res.length > 0) ? res[0].id : null;
+        if (!pIdDb) { 
+            const { data: fb } = await window.supabaseClient.from('palpites')
+                .select('id')
+                .eq('user_id', currentUserId)
+                .eq('partida_id', parseInt(partidaId))
+                .maybeSingle(); 
+            if (fb) pIdDb = fb.id; 
+        }
         
-        if (iC !== "" && iF !== "") {
-            const { data: res, error } = await window.supabaseClient.from('palpites')
-                .upsert({ 
-                    user_id: currentUserId, 
-                    partida_id: parseInt(pId), 
-                    palpite_casa: parseInt(iC), 
-                    palpite_fora: parseInt(iF), 
-                    usa_ficha_ouro: usaFicha 
-                }, { onConflict: 'user_id,partida_id' })
-                .select();
-                
-            if (error) { 
-                alert(`Erro ao salvar a partida ${pId}: ${error.message}`); 
-                continue; 
-            }
+        if (pIdDb) {
+            const sel = document.getElementById(`palpite-artilheiro-${partidaId}`);
+            await window.supabaseClient.from('palpites_gols_brasil').delete().eq('palpite_id', pIdDb);
             
-            if (card.dataset.isBrasil === 'true') {
-                let pIdDb = (res && res.length > 0) ? res[0].id : null;
-                if (!pIdDb) { 
-                    const { data: fb } = await window.supabaseClient.from('palpites')
-                        .select('id')
-                        .eq('user_id', currentUserId)
-                        .eq('partida_id', parseInt(pId))
-                        .maybeSingle(); 
-                    if (fb) pIdDb = fb.id; 
-                }
-                
-                if (pIdDb) {
-                    const sel = document.getElementById(`palpite-artilheiro-${pId}`);
-                    await window.supabaseClient.from('palpites_gols_brasil').delete().eq('palpite_id', pIdDb);
-                    
-                    if (sel && sel.value !== "") {
-                        await window.supabaseClient.from('palpites_gols_brasil').insert({ 
-                            palpite_id: pIdDb, 
-                            jogador_id: parseInt(sel.value) 
-                        });
-                    }
-                }
+            if (sel && sel.value !== "") {
+                await window.supabaseClient.from('palpites_gols_brasil').insert({ 
+                    palpite_id: pIdDb, 
+                    jogador_id: parseInt(sel.value) 
+                });
             }
         }
     }
     
-    alert("Todos os palpites foram guardados com sucesso!"); 
-    btn.innerHTML = textoOriginal;
-    btn.disabled = false;
+    // Feedback visual elegante de sucesso
+    btn.className = "bg-emerald-500 text-white text-[10px] font-bold px-3 py-1.5 rounded transition-colors whitespace-nowrap";
+    btn.innerHTML = "✓ Salvo";
     
-    await carregarDados(currentUserId);
+    // Repõe o botão e recarrega os dados em background para manter a memória atualizada
+    setTimeout(async () => {
+        btn.className = "bg-amber-500 hover:bg-amber-600 text-black text-[10px] font-bold px-3 py-1.5 rounded transition-colors whitespace-nowrap shadow-md shadow-amber-500/10";
+        btn.innerHTML = textoOriginal;
+        btn.disabled = false;
+        await carregarDados(currentUserId);
+    }, 1500);
 }
 
 // Exposição da função para o botão HTML
-window.salvarTodosOsPalpites = salvarTodosOsPalpites;
+window.salvarPalpiteIndividual = salvarPalpiteIndividual;
