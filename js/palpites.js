@@ -51,8 +51,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function carregarDados(userId) {
     // Carrega tudo de uma vez para a memória para evitar múltiplas chamadas à base de dados
     const { data: partidas } = await window.supabaseClient.from('partidas').select('*').order('data_hora', { ascending: true });
-    const { data: palpites } = await window.supabaseClient.from('palpites').select('*').eq('user_id', userId);
     const { data: palpitesGols } = await window.supabaseClient.from('palpites_gols_brasil').select('*, palpites!inner(user_id)').eq('palpites.user_id', userId);
+    const { data: palpites } = await window.supabaseClient.from('palpites').select('*').eq('user_id', userId);
 
     partidasGlobais = partidas || [];
     palpitesGlobais = palpites || [];
@@ -121,10 +121,9 @@ function renderizarJogosDaFaseAtiva() {
         // Se houver um nome de grupo definido, cria o título separador visual
         if (nomeGrupo !== 'Jogos') {
             const separador = document.createElement('div');
-            separador.className = "col-span-full mt-4 mb-1 border-b border-zinc-800/60 pb-2 flex items-center gap-3";
+            separador.className = "bg-zinc-950 border-b border-zinc-800 px-4 py-2.5 flex items-center gap-2 sticky top-0 z-10";
             separador.innerHTML = `
-                <div class="h-1.5 w-1.5 rounded-full bg-zinc-600"></div>
-                <h3 class="text-xs font-black text-zinc-400 uppercase tracking-widest">${nomeGrupo}</h3>
+                <div class="h-1.5 w-1.5 rounded-full bg-zinc-600"></div><h3 class="text-[10px] font-black text-zinc-400 uppercase tracking-widest">${nomeGrupo}</h3>
             `;
             container.appendChild(separador);
         }
@@ -140,13 +139,13 @@ function renderizarJogosDaFaseAtiva() {
             }).replace(',', ' às');
 
             const card = document.createElement('div');
-            card.className = "card-jogo bg-zinc-900 rounded-xl p-3 border border-zinc-800 flex flex-col gap-3 relative overflow-hidden transition-colors hover:bg-zinc-800/40";
+            card.className = "card-jogo border-b border-zinc-800/50 p-3 flex flex-col md:flex-row md:items-center justify-between gap-3 relative transition-colors hover:bg-zinc-800/40 bg-zinc-900 group";
             card.id = `card-palpite-${partida.id}`;
             card.dataset.partidaId = partida.id; 
             card.dataset.mercadoFechado = mercadoFechado; 
             card.dataset.isBrasil = partida.is_brasil;
             
-            if (partida.is_brasil) card.classList.add('border-l-4', 'border-l-yellow-500');
+            if (partida.is_brasil) card.classList.add('border-l-2', 'border-l-yellow-500');
 
             let subpainelGols = '';
             if (partida.is_brasil) {
@@ -158,44 +157,52 @@ function renderizarJogosDaFaseAtiva() {
                 });
                 
                 subpainelGols = `
-                    <div class="bg-zinc-950 p-2 rounded border border-zinc-800/80 space-y-1 mt-[-4px]">
-                        <span class="text-[9px] uppercase font-bold text-yellow-500 block">⭐ Artilheiro de Ouro</span>
-                        <select id="palpite-artilheiro-${partida.id}" ${mercadoFechado ? 'disabled' : ''} class="w-full h-7 bg-zinc-900 border border-zinc-800 rounded text-[10px] px-2 text-zinc-300 focus:outline-none focus:border-yellow-500">${optionsJogadores}</select>
+                    <div class="mt-2 flex justify-center w-full opacity-90 group-hover:opacity-100 transition-opacity">
+                        <div class="flex items-center gap-1.5 bg-zinc-950 px-2 py-1 rounded border border-zinc-800 text-[10px]">
+                            <span class="uppercase font-bold text-yellow-500">⭐ Artilheiro:</span>
+                            <select id="palpite-artilheiro-${partida.id}" ${mercadoFechado ? 'disabled' : ''} class="bg-transparent text-zinc-300 font-semibold outline-none cursor-pointer text-center w-auto max-w-[120px] truncate appearance-none">${optionsJogadores}</select>
+                        </div>
                     </div>`;
             }
 
             card.innerHTML = `
-                <div class="flex justify-between items-center text-[10px] text-zinc-500">
-                    <span class="font-mono uppercase">${dataStr}</span>
-                    <span class="px-1.5 py-0.5 rounded font-bold ${mercadoFechado ? 'text-red-400 bg-red-500/10' : 'text-emerald-400 bg-emerald-500/10'}">${mercadoFechado ? 'Fechado' : 'Aberto'}</span>
+                <!-- Coluna 1: Data e Status -->
+                <div class="flex items-center justify-between md:flex-col md:items-start md:w-20 shrink-0 gap-1">
+                    <span class="font-mono text-[10px] text-zinc-500">${dataStr}</span>
+                    <span class="px-1.5 py-0.5 rounded text-[8px] uppercase font-black tracking-wider ${mercadoFechado ? 'text-red-400 bg-red-500/10' : 'text-emerald-400 bg-emerald-500/10'}">${mercadoFechado ? 'Fechado' : 'Aberto'}</span>
                 </div>
                 
-                <div class="flex items-center justify-between gap-2">
-                    <div class="flex-1 flex items-center gap-1.5 overflow-hidden">
-                        ${obterBandeira(partida.time_casa)}
-                        <span class="font-bold text-zinc-100 text-xs truncate">${partida.time_casa}</span>
+                <!-- Coluna 2: A Partida (Centro) -->
+                <div class="flex-1 flex flex-col justify-center py-1">
+                    <div class="flex items-center justify-center gap-2">
+                        <div class="flex-1 flex items-center justify-end gap-2">
+                            <span class="font-bold text-zinc-100 text-xs truncate md:text-sm text-right">${partida.time_casa}</span>
+                            ${obterBandeira(partida.time_casa)}
+                        </div>
+                        
+                        <div class="flex items-center gap-1 shrink-0">
+                            <input type="number" id="gols-casa-${partida.id}" value="${palpite ? palpite.palpite_casa : ''}" ${mercadoFechado ? 'disabled' : ''} class="w-9 h-8 bg-zinc-950 border border-zinc-800 text-center font-bold rounded text-xs text-white focus:outline-none focus:border-amber-500">
+                            <span class="text-zinc-600 font-bold text-[10px] mx-0.5">X</span>
+                            <input type="number" id="gols-fora-${partida.id}" value="${palpite ? palpite.palpite_fora : ''}" ${mercadoFechado ? 'disabled' : ''} class="w-9 h-8 bg-zinc-950 border border-zinc-800 text-center font-bold rounded text-xs text-white focus:outline-none focus:border-amber-500">
+                        </div>
+                        
+                        <div class="flex-1 flex items-center justify-start gap-2">
+                            ${obterBandeira(partida.time_fora)}
+                            <span class="font-bold text-zinc-100 text-xs truncate md:text-sm text-left">${partida.time_fora}</span>
+                        </div>
                     </div>
-                    
-                    <div class="flex items-center gap-1.5 shrink-0">
-                        <input type="number" id="gols-casa-${partida.id}" value="${palpite ? palpite.palpite_casa : ''}" ${mercadoFechado ? 'disabled' : ''} class="w-10 h-8 bg-zinc-950 border border-zinc-800 text-center font-bold rounded text-sm text-white focus:border-amber-500">
-                        <span class="text-zinc-600 font-bold text-[10px]">X</span>
-                        <input type="number" id="gols-fora-${partida.id}" value="${palpite ? palpite.palpite_fora : ''}" ${mercadoFechado ? 'disabled' : ''} class="w-10 h-8 bg-zinc-950 border border-zinc-800 text-center font-bold rounded text-sm text-white focus:border-amber-500">
-                    </div>
-                    
-                    <div class="flex-1 flex items-center justify-end gap-1.5 text-right overflow-hidden">
-                        <span class="font-bold text-zinc-100 text-xs truncate">${partida.time_fora}</span>
-                        ${obterBandeira(partida.time_fora)}
-                    </div>
+                    ${subpainelGols}
                 </div>
                 
-                ${subpainelGols}
-                
-                <div class="flex items-center justify-between pt-2 border-t border-zinc-800/60 mt-1 h-8">
-                    <label class="flex items-center gap-1.5 text-[10px] text-zinc-400 cursor-pointer font-medium">
-                        <input type="checkbox" id="ficha-ouro-${partida.id}" ${palpite?.usa_ficha_ouro ? 'checked' : ''} ${mercadoFechado ? 'disabled' : ''} class="rounded bg-zinc-950 border-zinc-800 text-amber-500 focus:ring-0 w-3 h-3"> 
-                        ✨ Ficha de Ouro (2x)
+                <!-- Coluna 3: Ações e Pontos -->
+                <div class="flex items-center justify-between md:flex-col md:items-end md:justify-center md:w-28 shrink-0 gap-2 border-t border-zinc-800/60 md:border-t-0 md:border-l md:pl-3 pt-2 md:pt-0 mt-1 md:mt-0">
+                    <label class="flex items-center gap-1.5 text-[10px] text-zinc-400 cursor-pointer font-medium hover:text-white transition-colors">
+                        <input type="checkbox" id="ficha-ouro-${partida.id}" ${palpite?.usa_ficha_ouro ? 'checked' : ''} ${mercadoFechado ? 'disabled' : ''} class="rounded bg-zinc-950 border-zinc-800 text-amber-500 focus:ring-0 w-3.5 h-3.5"> 
+                        ✨ Usar ficha
                     </label>
-                    ${mercadoFechado ? `<span class="text-[10px] font-bold text-zinc-500">Pts ganhos: <span class="text-white">${palpite?.pontos_ganhos || 0}</span></span>` : `<button type="button" onclick="salvarPalpiteIndividual(${partida.id})" class="bg-amber-500 hover:bg-amber-600 text-black text-[10px] font-bold px-3 py-1.5 rounded transition-colors whitespace-nowrap shadow-md shadow-amber-500/10">Salvar</button>`}
+                    ${mercadoFechado 
+                        ? `<span class="text-[10px] font-bold text-zinc-500 bg-zinc-950 px-2 py-1 rounded border border-zinc-800">Pts: <span class="text-white">${palpite?.pontos_ganhos || 0}</span></span>` 
+                        : `<button type="button" onclick="salvarPalpiteIndividual(${partida.id})" class="bg-amber-500 hover:bg-amber-600 text-black text-[10px] font-bold px-4 py-1.5 rounded transition-colors whitespace-nowrap shadow-md shadow-amber-500/10 w-full md:w-auto">Salvar</button>`}
                 </div>`;
             
             container.appendChild(card);
