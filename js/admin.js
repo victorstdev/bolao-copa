@@ -48,9 +48,7 @@ async function carregarPartidasAdmin() {
     const partidasPorFase = {};
 
     partidas.forEach(partida => {
-        const agrupador = (partida.fase.includes('Fase de Grupos') && partida.grupo) 
-            ? `GRUPO ${partida.grupo.replace('Grupo', '').trim()}` 
-            : partida.fase;
+        const agrupador = partida.fase;
             
         if (!ordemFases.includes(agrupador)) {
             ordemFases.push(agrupador);
@@ -93,15 +91,16 @@ async function carregarPartidasAdmin() {
                 </div>`;
                 setTimeout(() => { gols.forEach(g => adicionarGolRealAdmin(partida.id, g.jogador_id)); }, 0);
             }
+            
+            const lblGrupo = partida.grupo ? `GRUPO ${partida.grupo.replace('Grupo', '').trim()}` : '';
 
             card.innerHTML = `
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 relative">
-                    <!-- Coluna 1: Data -->
-                    <div class="flex items-center justify-between md:flex-col md:items-start md:w-20 shrink-0 gap-1">
+                    <div class="flex items-center justify-between md:flex-col md:items-start md:w-20 shrink-0 gap-1.5">
                         <span class="font-mono text-[10px] text-zinc-500">${dataStr}</span>
+                        ${lblGrupo ? `<span class="text-[8px] font-bold text-zinc-400 uppercase tracking-wider bg-zinc-800 px-1.5 py-0.5 rounded border border-zinc-700">${lblGrupo}</span>` : ''}
                     </div>
 
-                    <!-- Coluna 2: Times e Placar -->
                     <div class="flex-1 flex flex-col justify-center">
                         <div class="flex items-center justify-center gap-2">
                             <div class="flex-1 flex items-center justify-end gap-2">
@@ -122,7 +121,6 @@ async function carregarPartidasAdmin() {
                         </div>
                     </div>
 
-                    <!-- Coluna 3: Status e Salvar -->
                     <div class="flex items-center justify-between md:justify-end md:w-48 shrink-0 gap-2 border-t border-zinc-800/60 md:border-t-0 md:border-l md:pl-3 pt-2 md:pt-0 mt-1 md:mt-0">
                         <select id="admin-status-${partida.id}" class="w-full md:w-28 h-8 bg-zinc-950 border border-zinc-800 rounded text-[10px] font-semibold px-2 text-zinc-300 focus:outline-none focus:border-red-500 cursor-pointer">
                             <option value="agendado" ${partida.status === 'agendado' ? 'selected' : ''}>📅 Agendado</option>
